@@ -134,8 +134,9 @@ if (!R.echecs.length && !C.ratés.length && !process.argv.includes("--rapide")){
     const fjs = join(tmp, cle + ".js"), fpy = join(tmp, cle + ".py");
     writeFileSync(fjs, N.engendreJS(M, { graine: 1 }));
     writeFileSync(fpy, N.engendrePython(M));
+    let outJS = null;
     try {
-      const outJS = execFileSync("node", [fjs, "1"], { encoding: "utf8" });
+      outJS = execFileSync("node", [fjs, "1"], { encoding: "utf8" });
       if (!/bilan/.test(outJS)) throw new Error("sortie inattendue");
       console.log(`  ✓ node ${cle}.js`);
       sorties++;
@@ -143,12 +144,39 @@ if (!R.echecs.length && !C.ratés.length && !process.argv.includes("--rapide")){
       console.log(`  ✗ node ${cle}.js — ${String(err.stderr || err.message).split("\n")[0]}`);
       process.exitCode = 1;
     }
+    let outPY = null;
     try {
-      const outPY = execFileSync("python3", [fpy, "1"], { encoding: "utf8" });
+      outPY = execFileSync("python3", [fpy, "1"], { encoding: "utf8" });
       if (!/bilan/.test(outPY)) throw new Error("sortie inattendue");
       console.log(`  ✓ python3 ${cle}.py`);
     } catch(err){
       console.log(`  ~ python3 ${cle}.py — ${String(err.stderr || err.message).split("\n").filter(Boolean).pop()}`);
+    }
+
+    /* Contrôle croisé. Les deux programmes tirent leur hasard de générateurs
+       différents : on ne peut les comparer que sur un montage SANS hasard. Sur
+       ceux-là en revanche, la moindre divergence est un vrai désaccord entre
+       les deux moteurs — c'est comme ça qu'a été trouvé le repli manquant du
+       bloc Réparer dans la traduction Python. */
+    const empreinte = g => JSON.stringify(Object.entries(N.executer(M, { graine: g, trace: false }).puits)
+                                  .map(([k, l]) => [k, l.map(N.aff)]));
+    const deterministe = empreinte(1) === empreinte(999);
+    if (deterministe && outPY){
+      const puits = txt => {
+        const i = txt.indexOf("── bilan ──");
+        if (i < 0) return [];
+        return txt.slice(i).split("\n")
+          .map(l => l.match(/^ {2}(?!assertion )(.+?) : (.*)$/))
+          .filter(Boolean).map(m => m[1].trim() + " = " + m[2].trim());
+      };
+      const a2 = puits(outJS), b2 = puits(outPY);
+      if (JSON.stringify(a2) === JSON.stringify(b2) && a2.length){
+        console.log(`  ✓ js ≡ python sur ${cle} (${a2.length} puits identiques)`);
+      } else {
+        console.log(`  ✗ js ≢ python sur ${cle}`);
+        a2.forEach((l, i) => { if (l !== b2[i]) console.log(`      js : ${l}\n      py : ${b2[i]}`); });
+        process.exitCode = 1;
+      }
     }
   }
 }

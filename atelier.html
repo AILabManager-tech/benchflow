@@ -803,6 +803,27 @@ function aff(v){
   return affBrut(v.v);
 }
 
+/** Forme courte, pour les endroits étroits : la pastille d'un bloc, l'étiquette
+ *  d'un fil. Un enregistrement de sept champs y tiendrait en JSON tronqué —
+ *  c'est-à-dire illisible. On annonce sa nature et sa taille ; le détail reste
+ *  entier dans le journal, dans l'inspecteur et au survol. */
+function affCourt(v, max){
+  if (v === undefined || v === null) return "—";
+  const m = max || 26;
+  if (estAnomalie(v)){
+    const t = "⚠ " + v.v;
+    return t.length > m ? t.slice(0, m - 1) + "…" : t;
+  }
+  const x = v.v;
+  if (Array.isArray(x)) return `liste · ${x.length} élément${x.length > 1 ? "s" : ""}`;
+  if (x !== null && typeof x === "object"){
+    const n = Object.keys(x).length;
+    return `objet · ${n} champ${n > 1 ? "s" : ""}`;
+  }
+  const t = aff(v);
+  return t.length > m ? t.slice(0, m - 1) + "…" : t;
+}
+
 /** Valeur brute d'une valeur qui circule, pour la donner aux expressions. */
 const brut = v => (v === undefined || v === null) ? undefined : v.v;
 
@@ -1009,12 +1030,12 @@ jeu: {
     `    if not src: return {"ligne": ano("jeu de données vide")}`,
     `    if src[0] in "[{":`,
     `        try:`,
-    `            o = json.loads(src); s["lignes"] = o if isinstance(o, list) else [o]`,
+    `            o = enr(json.loads(src)); s["lignes"] = o if isinstance(o, list) else [o]`,
     `        except Exception as err: return {"ligne": ano("JSON illisible : %s" % err)}`,
     `    else:`,
     `        ls = [l.strip() for l in src.split("\\n") if l.strip()]`,
     `        ent = [c.strip() for c in ls[0].split(",")]`,
-    `        s["lignes"] = [dict(zip(ent, [_num(c.strip()) for c in l.split(",")])) for l in ls[1:]]`,
+    `        s["lignes"] = [Enr(zip(ent, [_num(c.strip()) for c in l.split(",")])) for l in ls[1:]]`,
     `    s["i"] = 0`,
     `if s["i"] >= len(s["lignes"]): return {}`,
     `item = s["lignes"][s["i"]]; s["i"] += 1`,
@@ -1350,7 +1371,11 @@ reparer: {
             `us = float(p["usure"] or 0)/100; gagne = False; n = 0`,
             `for n in range(1, budget+1):`,
             `    if ctx.hasard() < max(0.0, pr*(1-(n-1)*us)): gagne = True; break`,
-            `if gagne: return {"réparé": conv(p["remis"], "nombre")}`,
+            `r = conv(p["remis"], "nombre")`,
+            `if gagne:`,
+            `    # même repli qu'en JavaScript : une valeur remise non numérique`,
+            `    # reste du texte, elle ne devient pas une anomalie.`,
+            `    return {"réparé": val(p["remis"], "texte") if r["t"] == "anomalie" else r}`,
             `return {"épuisé": ano("budget épuisé après %d tentative(s)" % budget)}`].join("\n")
 },
 
@@ -2541,9 +2566,30 @@ if (typeof module !== "undefined") module.exports = { MONTAGE, executer, COMP, p
 const RUNTIME_PY = String.raw`import json, math, random, re, sys
 
 # ── valeurs ────────────────────────────────────────────────────────────────
+class Enr(dict):
+    """Un enregistrement. En JavaScript on écrit x.quantite ; en Python ce serait
+    x["quantite"]. Comme les expressions viennent de l'atelier telles quelles, on
+    fait marcher les deux — sans quoi la moindre lecture de champ ferait échouer
+    toute la traduction."""
+    def __getattr__(self, k):
+        try: return self[k]
+        except KeyError: raise AttributeError(k)
+
+def enr(x):
+    if isinstance(x, dict) and not isinstance(x, Enr):
+        return Enr({k: enr(v) for k, v in x.items()})
+    if isinstance(x, list): return [enr(v) for v in x]
+    return x
+
+def _assign(*objs):
+    out = Enr()
+    for o in objs:
+        if o: out.update(o)
+    return out
+
 def val(x, t=None):
     if isinstance(x, dict) and "t" in x and "v" in x: return x
-    return {"t": t or type_brut(x), "v": x}
+    return {"t": t or type_brut(x), "v": enr(x)}
 
 def ano(motif, cause=None):
     return {"t": "anomalie", "v": str(motif), "cause": cause}
@@ -2569,8 +2615,19 @@ def aff_brut(x):
     if isinstance(x, float): return str(int(x)) if x == int(x) else str(round(x, 3))
     if isinstance(x, int): return str(x)
     if isinstance(x, list): return "[" + ", ".join(aff_brut(i) for i in x) + "]"
-    if isinstance(x, dict): return json.dumps(x, ensure_ascii=False)
+    if isinstance(x, dict): return json.dumps(_compat(x), ensure_ascii=False, separators=(",", ":"))
     return str(x)
+
+def _compat(x):
+    """Aligne la sérialisation sur celle de JavaScript : 240.0 s'écrit 240, et
+    JSON.stringify ne met pas d'espace après les deux-points. Sans ça, les deux
+    traductions du même montage affichent des résultats différents alors qu'elles
+    calculent la même chose — et on ne peut plus les comparer."""
+    if isinstance(x, bool): return x
+    if isinstance(x, float) and x == int(x): return int(x)
+    if isinstance(x, dict): return {k: _compat(v) for k, v in x.items()}
+    if isinstance(x, list): return [_compat(v) for v in x]
+    return x
 
 def _f(x, d=0.0):
     try: return float(x)
@@ -2586,7 +2643,7 @@ def conv(x, t):
     if t == "nombre":
         if isinstance(b, bool): return val(1 if b else 0, "nombre")
         try: return val(_num(str(b).replace(",", ".")) * 1.0, "nombre")
-        except ValueError: return ano("« %s » n'est pas un nombre" % aff_brut(b), b)
+        except (ValueError, TypeError): return ano("« %s » n'est pas un nombre" % aff_brut(b), b)
     if t == "booleen":
         if isinstance(b, bool): return val(b, "booleen")
         s = str(b).strip().lower()
@@ -2654,10 +2711,35 @@ _REMPL = [(r"===", "=="), (r"!==", "!="), (r"&&", " and "), (r"\|\|", " or "),
           (r"\btrue\b", "True"), (r"\bfalse\b", "False"),
           (r"\bnull\b", "None"), (r"\bundefined\b", "None"),
           (r"\bString\(", "str("), (r"\bNumber\(", "_f("),
+          (r"\bObject\.assign\(", "_assign("),
           (r"\.length\b", "_len"), (r"!(?![=])", " not ")]
 
+# { total: 12 } → { "total": 12 }. Appliqué APRÈS le ternaire, qui a déjà
+# consommé les deux-points de « a ? b : c » — sinon on citerait n'importe quoi.
+_CLE = re.compile(r"([{,]\s*)([A-Za-zÀ-ÖØ-öø-ÿ_$][A-Za-z0-9À-ÖØ-öø-ÿ_$]*)\s*:")
+
+def _sans_commentaires(src):
+    """Retire les commentaires // … de fin de ligne, en respectant les chaînes.
+    Sans ça, une expression commentée — ce qui est une bonne pratique — casserait
+    la traduction, et l'apostrophe d'un « d'origine » ouvrirait une chaîne."""
+    out, q, i = [], None, 0
+    while i < len(src):
+        c = src[i]
+        if q:
+            out.append(c)
+            if c == "\\" and i + 1 < len(src): out.append(src[i+1]); i += 2; continue
+            if c == q: q = None
+            i += 1; continue
+        if c == '"' or c == "'": q = c; out.append(c); i += 1; continue
+        if c == "/" and i + 1 < len(src) and src[i+1] == "/":
+            while i < len(src) and src[i] != "\n": i += 1
+            continue
+        out.append(c); i += 1
+    return "".join(l for l in "".join(out).split("\n") if l.strip())
+
 def js_py(src):
-    out = _ternaire(str(src))
+    out = _ternaire(_sans_commentaires(str(src)))
+    out = _CLE.sub(r'\1"\2":', out)
     for motif, rem in _REMPL:
         out = re.sub(motif, rem, out)
     return out.replace("_len", ".__len__()")
@@ -2666,8 +2748,9 @@ def js_eval(src, variables):
     """Évalue une expression écrite en JavaScript. Échoue bruyamment."""
     py = js_py(src)
     env = {"Math": _Math, "math": math, "str": str, "_f": _f, "len": len,
-           "abs": abs, "min": min, "max": max, "round": round, "aide": _Aide}
-    env.update(variables)
+           "abs": abs, "min": min, "max": max, "round": round, "aide": _Aide,
+           "_assign": _assign, "Enr": Enr}
+    env.update({k: enr(v) for k, v in variables.items()})
     try:
         return eval(py, {"__builtins__": {}}, env)
     except Exception as err:
@@ -2681,6 +2764,8 @@ class _Aide:
     arrondi = staticmethod(lambda x, n=0: round(_f(x), int(n)))
     borne   = staticmethod(lambda x, a, b: min(b, max(a, x)))
     pourcent= staticmethod(lambda x, n=1: ("%." + str(n) + "f %%") % (x * 100))
+    argent  = staticmethod(lambda x: ("{:,.2f}".format(_f(x))).replace(",", "\u202f")
+                                       .replace(".", ",") + "\u202f$")
 
 def js_corps(src, variables):
     raise RuntimeError("bloc Script / bloc forgé : corps JavaScript non traduit en Python "
@@ -2926,42 +3011,86 @@ function monte(titre, blocs, liens, zones, scenarios){
 
 const EXEMPLES = {
 
-/* L'exemple d'accueil. Une chaîne d'intégration continue : tout développeur en
-   a une, et elle met en jeu exactement ce que l'atelier sait modéliser — une
-   validation qui refuse, des tests instables, une reprise bornée, un
-   disjoncteur qui finit par arrêter d'insister, un déploiement qui ne se fait
-   qu'un à la fois, et deux issues honnêtes : en production, ou retour arrière. */
-"Chaîne d'intégration continue": () => monte("Chaîne d'intégration continue",
-  [["generateur",  "Commits poussés",           80, 170, { loi:"suite", n:"8", a:"1", b:"1", cadence:"400" }],
-   ["valider",     "Le code compile",          320, 170, { cond:"x % 5 !== 0", motif:"compilation échouée" }],
-   ["panne",       "Suite de tests",           560, 170, { taux:"30", motif:"test instable" }],
-   ["disjoncteur", "Trop d'échecs d'affilée",  560, 430, { seuil:"3", repos:"2000" }],
-   ["reparer",     "Relancer le job",          800, 430, { budget:"2", reussite:"70", usure:"15",
-                                                           attente:"300", remis:"1" }],
-   ["limiteur",    "Un déploiement à la fois",1040, 170, { parSeconde:"1" }],
-   ["attendre",    "Déploiement",             1280, 170, { duree:"800", _cap:"1" }],
-   ["assertion",   "Service en bonne santé",  1520, 170, { cond:"x > 0", nom:"le service répond" }],
-   ["sortie",      "En production",           1760, 170],
-   ["rebut",       "Retour arrière",          1040, 430]],
-  [[0,"valeur",1,"x"],
-   [1,"ok",2,"x"], [1,"refus",9,"x"],
-   [2,"x",5,"x"],  [2,"panne",3,"x"],
-   [3,"passé",5,"x"], [3,"coupé",4,"anomalie"],
-   [4,"réparé",5,"x"], [4,"épuisé",9,"x"],
-   [5,"x",6,"x"], [6,"x",7,"x"], [7,"x",8,"x"]],
-  [["Intégration",   40, 110,  500, 190, 0],
-   ["Vérification", 540, 110,  460, 450, 2],
-   ["Livraison",   1020, 110,  960, 190, 4],
-   ["Incidents",   1020, 370,  240, 190, 3]],
-  [{ nom: "Le commit qui ne compile pas est le seul à repartir en arrière", graine: 1,
-     attentes: [{ sujet:"compte", cible:"b9",  op:"=", valeur:"7" },
-                { sujet:"compte", cible:"b10", op:"=", valeur:"1" }] },
-   { nom: "Les tests instables sont absorbés par la reprise, pas subis", graine: 3,
-     attentes: [{ sujet:"anomalies", op:"≥", valeur:"1" },
-                { sujet:"compte", cible:"b9", op:"=", valeur:"7" },
-                { sujet:"assertions", op:"=", valeur:"oui" }] },
-   { nom: "Un seul déploiement à la fois : la chaîne dure plus de 6 secondes", graine: 1,
-     attentes: [{ sujet:"duree", op:"≥", valeur:"6000" }] }]),
+/* L'exemple d'accueil. Le traitement d'une commande dans une boutique en ligne :
+   tout le monde voit de quoi il s'agit, et surtout — les valeurs qui circulent
+   sont de VRAIES lignes de commande, pas des entiers déguisés. Chaque bloc lit
+   des champs qui existent (quantité, prix unitaire, pays) et applique une règle
+   qu'on pourrait défendre en réunion. C'est ce qui fait la différence entre un
+   schéma et un modèle : ici on peut changer une taxe et regarder le total bouger. */
+"Commandes d'une boutique en ligne": () => monte("Commandes d'une boutique en ligne",
+  [["jeu",         "Commandes reçues",             80, 200,
+    { donnees: "commande, article, quantite, prixUnitaire, pays\n" +
+               "A-1041, clavier mécanique, 2, 149.99, CA\n" +
+               "A-1042, souris sans fil, 1, 39.50, CA\n" +
+               "A-1043, écran 27 pouces, 3, 429.00, US\n" +
+               "A-1044, câble USB-C, 12, 12.75, CA\n" +
+               "A-1045, station d'accueil, 1, 289.99, FR\n" +
+               "A-1046, casque audio, 0, 199.00, CA\n" +
+               "A-1047, webcam 1080p, 2, 89.99, US\n" +
+               "A-1048, tapis de souris, 4, 24.99, CA\n" +
+               "A-1049, disque SSD 2 To, 1, 279.00, DE\n" +
+               "A-1050, support d'écran, 40, 59.99, CA", cadence: "150" }],
+   ["valider",     "Quantité commandable",        340, 200,
+    { cond: "x.quantite > 0 && x.quantite <= 20", motif: "quantité hors des limites de vente" }],
+   ["fonction",    "Sous-total de la ligne",      600, 200,
+    { expr: "// On enrichit la commande au lieu de la remplacer :\n" +
+            "// les champs d'origine servent encore plus loin.\n" +
+            "Object.assign({}, x, { sousTotal: aide.arrondi(x.quantite * x.prixUnitaire, 2) })" }],
+   ["aiguiller",   "Zone d'expédition",           860, 200,
+    { voies: "x.pays === \"CA\"\nx.pays === \"US\"" }],
+   ["fonction",    "Taxes du Québec (14,975 %)", 1120,  60,
+    { expr: "Object.assign({}, x, { total: aide.arrondi(x.sousTotal * 1.14975, 2),\n                                    facture: aide.argent(x.sousTotal * 1.14975) })" }],
+   ["fonction",    "Douane américaine (8 %)",   1120, 200,
+    { expr: "Object.assign({}, x, { total: aide.arrondi(x.sousTotal * 1.08, 2),\n                                    facture: aide.argent(x.sousTotal * 1.08) })" }],
+   ["fonction",    "International (15 % + 45 $)",1120, 340,
+    { expr: "Object.assign({}, x, { total: aide.arrondi(x.sousTotal * 1.15 + 45, 2),\n                                    facture: aide.argent(x.sousTotal * 1.15 + 45) })" }],
+
+   ["limiteur",    "Passerelle : 5 par seconde",   80, 620, { parSeconde: "5" }],
+   ["panne",       "Paiement",                    340, 620,
+    { taux: "25", motif: "passerelle de paiement indisponible" }],
+   ["assertion",   "Total facturé positif",       600, 620,
+    { cond: "x.total > 0", nom: "aucune commande à zéro dollar" }],
+   ["formater",    "Ligne de confirmation",       860, 620,
+    { gabarit: "{x.commande} · {x.article} ×{x.quantite} · {x.facture}" }],
+   ["sortie",      "Commande confirmée",         1120, 620],
+
+   ["disjoncteur", "Passerelle instable",         340, 860, { seuil: "3", repos: "1500" }],
+   ["reparer",     "Nouvelle tentative",          600, 860,
+    { budget: "2", reussite: "65", usure: "10", attente: "250",
+      remis: "paiement accepté après reprise" }],
+   ["sortie",      "Payée après reprise",         860, 860],
+   ["rebut",       "À traiter à la main",        1120, 860]],
+
+  [[0,"ligne",1,"x"],
+   [1,"ok",2,"x"], [1,"refus",15,"x"],
+   [2,"y",3,"x"],
+   [3,"voie 1",4,"x"], [3,"voie 2",5,"x"], [3,"autre",6,"x"],
+   [4,"y",7,"x"], [5,"y",7,"x"], [6,"y",7,"x"],
+   [7,"x",8,"x"],
+   [8,"x",9,"x"], [8,"panne",12,"x"],
+   [9,"x",10,"x"], [10,"texte",11,"x"],
+   [12,"passé",9,"x"], [12,"coupé",13,"anomalie"],
+   [13,"réparé",14,"x"], [13,"épuisé",15,"x"]],
+
+  [["Réception",           40, 140,  520, 160, 0],
+   ["Tarification",       580,   0,  740, 480, 4],
+   ["Paiement",            40, 560, 1300, 180, 2],
+   ["Reprise et écarts",  300, 800, 1040, 180, 3]],
+
+  [{ nom: "Dix commandes entrent, dix commandes ressortent — aucune ne s'évapore", graine: 1,
+     attentes: [{ sujet:"compte", cible:"b12", op:"=", valeur:"7" },
+                { sujet:"compte", cible:"b15", op:"=", valeur:"1" },
+                { sujet:"compte", cible:"b16", op:"=", valeur:"2" }] },
+   { nom: "Une quantité impossible n'atteint jamais la passerelle de paiement", graine: 1,
+     attentes: [{ sujet:"recu",   cible:"b16", op:"contient", valeur:"quantité hors des limites" },
+                { sujet:"recu",   cible:"b12", op:"≠",        valeur:"A-1046" }] },
+   { nom: "Chaque zone d'expédition applique bien sa propre règle", graine: 1,
+     /* Sans le « $ » : Intl place une espace fine insécable devant, qu'on ne
+        peut pas taper au clavier — la comparaison échouerait sur un caractère
+        invisible, ce qui est le pire genre de test rouge. */
+     attentes: [{ sujet:"recu", cible:"b12", op:"contient", valeur:"×2 · 344,90" },
+                { sujet:"recu", cible:"b12", op:"contient", valeur:"×3 · 1" },
+                { sujet:"recu", cible:"b12", op:"contient", valeur:"×1 · 378,49" }] }]),
 
 "Contrôle et réparation": () => monte("Contrôle et réparation",
   [["source",      "Mesure relevée",        80, 210, { valeur: "-4", type: "nombre" }],
@@ -3082,6 +3211,11 @@ function lancerTests(){
   eq("affichage booléen", aff(val(true)), "vrai");
   eq("affichage liste", aff(val([1,2])), "[1, 2]");
   eq("affichage anomalie", aff(anomalie("bris")), "⚠ bris");
+  eq("forme courte d'un objet", affCourt(val({a:1,b:2,c:3})), "objet · 3 champs");
+  eq("forme courte d'une liste", affCourt(val([1,2])), "liste · 2 éléments");
+  eq("forme courte d'un nombre", affCourt(val(42)), "42");
+  eq("forme courte tronquée", affCourt(val("abcdefghij"), 6), "abcde…");
+  eq("la forme longue reste entière", aff(val({a:1,b:2,c:3})), '{"a":1,"b":2,"c":3}');
   eq("valeur déjà enveloppée non réenveloppée", val(val(5)).v, 5);
 
   G("Expressions");
@@ -3487,7 +3621,7 @@ function lancerTests(){
   Msec.blocs[0].x = 100;
   eq("la section retrouve son bloc", blocsDeSection(Msec, Msec.zones[1]).length, 1);
   eq("… et la grande ne le compte pas deux fois", blocsDeSection(Msec, Msec.zones[0]).length, 0);
-  const Mex = EXEMPLES["Chaîne d'intégration continue"]();
+  const Mex = EXEMPLES["Commandes d'une boutique en ligne"]();
   ok("chaque bloc de l'exemple d'accueil est dans une section",
      Mex.blocs.every(b => sectionDuBloc(Mex, b)),
      Mex.blocs.filter(b => !sectionDuBloc(Mex, b)).map(b => b.nom).join(", "));
@@ -3777,7 +3911,7 @@ function corpsBloc(b, c){
       <span class="cmp" style="color:${c.coul}">${ech(c.nom)}</span>
       <span class="pastille"></span></div>
     <div class="nm" title="${ech(b.nom)}">${ech(b.nom)}</div>
-    <div class="val ${t ? "c-" + t : ""}">${v ? ech(aff(v)) : "—"}</div>`;
+    <div class="val ${t ? "c-" + t : ""}" title="${v ? ech(aff(v)) : ""}">${v ? ech(affCourt(v)) : "—"}</div>`;
 }
 
 function elPort(b, sens, i, nom){
@@ -3861,9 +3995,8 @@ function dessineFils(){
     h += `<path class="fil zone" data-l="${L.id}" d="${d}"/>`;
     if (v !== undefined){
       const mi = pts[Math.floor(pts.length / 2)];
-      const txt = aff(v);
-      const court = txt.length > 22 ? txt.slice(0, 21) + "…" : txt;
-      h += `<text class="jeton-txt c-${t}" x="${mi[0]}" y="${mi[1] - 8}" text-anchor="middle">${ech(court)}<title>${ech(txt)}</title></text>`;
+      h += `<text class="jeton-txt c-${t}" x="${mi[0]}" y="${mi[1] - 8}" text-anchor="middle">` +
+           `${ech(affCourt(v, 22))}<title>${ech(aff(v))}</title></text>`;
     }
   });
   if (tirage){
@@ -3885,7 +4018,8 @@ function rafraichitValeurs(){
     const v = vueRun.vals[b.id];
     const cell = el.querySelector(".val");
     if (cell){
-      cell.textContent = v ? aff(v) : "—";
+      cell.textContent = v ? affCourt(v) : "—";
+      cell.title = v ? aff(v) : "";
       cell.className = "val " + (v ? "c-" + typeDe(v) : "");
     }
     el.classList.toggle("court", vueRun.actifs.includes(b.id));
@@ -5865,7 +5999,7 @@ function tenteMigration(){
 (function demarre(){
   const repris = charge() || tenteMigration();
   if (!repris || !M.blocs.length){
-    M = EXEMPLES["Chaîne d'intégration continue"]();
+    M = EXEMPLES["Commandes d'une boutique en ligne"]();
     seq = M.seq || 100;
   }
   chargeForges(M.forges);

@@ -47,11 +47,19 @@ sinon un scénario ne voudrait rien dire.
 | Fiabilité | Réparer (budget + usure + backoff), Disjoncteur, Aléa de panne, Refuser |
 | Sortie | Sortie, Rebut, Assertion, Sonde |
 
-À l'ouverture, l'atelier charge une **chaîne d'intégration continue** : des commits
-poussés, une compilation qui refuse, des tests instables, une reprise bornée, un
-disjoncteur qui finit par arrêter d'insister, un déploiement à la fois — et deux issues
-honnêtes, la production ou le retour arrière. Huit commits entrent, sept sortent en
-production, un repart en arrière : celui qui ne compilait pas.
+À l'ouverture, l'atelier charge le **traitement des commandes d'une boutique en ligne**.
+Ce ne sont pas des entiers déguisés : dix vraies lignes de commande entrent par un jeu de
+données CSV, chaque bloc lit des champs qui existent — quantité, prix unitaire, pays — et
+applique une règle qu'on pourrait défendre en réunion. Une quantité de 0 ou de 40 est
+refusée, le sous-total s'ajoute à l'enregistrement, l'expédition s'aiguille par zone
+(taxes du Québec, douane américaine, forfait international), le paiement passe par une
+passerelle limitée à cinq appels par seconde qui tombe parfois en panne, une reprise
+bornée rattrape ce qu'elle peut, et le reste part au traitement manuel.
+
+On voit l'enregistrement s'enrichir en traversant : `objet · 5 champs` à l'entrée,
+`6 champs` après le sous-total, `8 champs` après la taxe et la facture. Changer un taux
+et regarder les totaux bouger prend dix secondes — c'est la différence entre un schéma
+et un modèle.
 
 **Six types de valeur** : nombre, texte, booléen, liste, objet, anomalie. Les types se
 propagent statiquement dans le graphe : on connaît le type porté par un fil avant
@@ -135,12 +143,18 @@ Le fichier est coupé en deux moitiés par les marqueurs `@noyau:debut` / `@noya
 touche jamais au DOM. Il tourne donc tel quel hors du navigateur :
 
 ```
-node verifier.mjs        221 assertions · 124 paires de couleurs au-dessus du
+node verifier.mjs        226 assertions · 124 paires de couleurs au-dessus du
                          seuil de contraste · engendre et exécute les 4 exemples
                          en JavaScript et en Python
 node verifier.mjs -v     détail de chaque assertion
 node verifier.mjs --rapide   assertions seulement
 ```
+
+Les deux traductions d'un même montage sont aussi **comparées entre elles** : pour les
+montages sans hasard, ce que produit le JavaScript engendré et ce que produit le Python
+doivent coïncider ligne pour ligne. C'est ce contrôle qui a révélé qu'un repli du bloc
+Réparer manquait côté Python, et que la sérialisation JSON des deux langages ne s'accordait
+pas sur `240` contre `240.0`.
 
 Le contrôle de contraste lit les couleurs **dans la feuille de style elle-même** et vérifie
 124 paires des deux thèmes : le texte contre son fond (seuil AA, 4,5:1) **et les surfaces
