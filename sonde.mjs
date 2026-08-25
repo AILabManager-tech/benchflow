@@ -1,0 +1,98 @@
+#!/usr/bin/env node
+/* Sonde navigateur.
+
+   Le noyau se vérifie sous Node ; l'interface, non. Cette sonde ouvre
+   atelier.html dans Chrome sans fenêtre, pilote la page par le protocole de
+   débogage, rapporte TOUTE erreur console et exécute le script d'inspection
+   qu'on lui donne.
+
+       node sonde.mjs                 charge la page, signale les erreurs
+       node sonde.mjs regarde.js      … puis évalue regarde.js dans la page
+
+   Le script reçoit la page entière : `M`, `executer`, `dessine`, le DOM. Il doit
+   renvoyer un objet sérialisable (une promesse est attendue).
+
+   Seul outil du dépôt à demander autre chose que Node — il lui faut Chrome. Il
+   ne sert qu'au développement : l'application, elle, n'a toujours aucune
+   dépendance. C'est cette sonde qui a trouvé l'encart d'astuce qui volait les
+   clics, le télescopage des étiquettes de ports, et la dérive des blocs qui
+   suivaient un encadré. */
+import { spawn } from "node:child_process";
+import { readFileSync } from "node:fs";
+
+const PORT = 29222;
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+const PAGE = "file://" + join(dirname(fileURLToPath(import.meta.url)), "atelier.html");
+const script = process.argv[2] ? readFileSync(process.argv[2], "utf8") : "({ok:true})";
+
+const chrome = spawn("google-chrome", [
+  "--headless=new", `--remote-debugging-port=${PORT}`,
+  "--user-data-dir=/tmp/claude-1000/chrome-sonde", "--no-first-run", "--no-default-browser-check",
+  "--disable-gpu", "--allow-file-access-from-files", "--window-size=1600,1000", "about:blank"
+], { stdio: "ignore" });
+
+const dodo = ms => new Promise(r => setTimeout(r, ms));
+
+async function cible(){
+  for (let i = 0; i < 60; i++){
+    try {
+      const r = await fetch(`http://127.0.0.1:${PORT}/json/list`);
+      const l = await r.json();
+      const p = l.find(x => x.type === "page");
+      if (p) return p;
+    } catch(e){}
+    await dodo(250);
+  }
+  throw new Error("Chrome n'a pas répondu");
+}
+
+const t = await cible();
+const ws = new WebSocket(t.webSocketDebuggerUrl);
+let id = 0;
+const attentes = new Map();
+const journal = [];
+
+ws.addEventListener("message", ev => {
+  const m = JSON.parse(ev.data);
+  if (m.id && attentes.has(m.id)){ attentes.get(m.id)(m); attentes.delete(m.id); return; }
+  if (m.method === "Runtime.exceptionThrown"){
+    const d = m.params.exceptionDetails;
+    journal.push({ k: "EXCEPTION", txt: (d.exception && d.exception.description) || d.text,
+                   ligne: d.lineNumber });
+  }
+  if (m.method === "Runtime.consoleAPICalled" && ["error","warning"].includes(m.params.type)){
+    journal.push({ k: m.params.type.toUpperCase(),
+                   txt: m.params.args.map(a => a.value ?? a.description ?? a.type).join(" ") });
+  }
+  if (m.method === "Log.entryAdded" && m.params.entry.level === "error"){
+    journal.push({ k: "LOG", txt: m.params.entry.text, url: m.params.entry.url });
+  }
+});
+const envoie = (method, params) => new Promise(res => {
+  const n = ++id; attentes.set(n, res);
+  ws.send(JSON.stringify({ id: n, method, params: params || {} }));
+});
+
+await new Promise(r => ws.addEventListener("open", r));
+await envoie("Runtime.enable");
+await envoie("Log.enable");
+await envoie("Page.enable");
+await envoie("Page.navigate", { url: PAGE });
+await dodo(2500);
+
+const r = await envoie("Runtime.evaluate", {
+  expression: `(async function(){ try { return JSON.stringify(await (${script})); } catch(e){ return JSON.stringify({ERREUR: e.message, pile: String(e.stack).split("\\n").slice(0,4)}); } })()`,
+  returnByValue: true, awaitPromise: true
+});
+await dodo(600);
+
+console.log("── console ──");
+if (!journal.length) console.log("  (rien : aucune erreur, aucun avertissement)");
+journal.forEach(l => console.log(`  ${l.k}: ${l.txt}${l.url ? "  ← " + l.url : ""}`));
+console.log("── inspection ──");
+const v = r.result && r.result.result && r.result.result.value;
+try { console.log(JSON.stringify(JSON.parse(v), null, 1)); } catch(e){ console.log(v, r.result); }
+
+ws.close(); chrome.kill();
+process.exit(0);

@@ -209,5 +209,11 @@ jamais effacée.
 atelier.html    l'application entière — noyau (§0-§11) puis interface (§12-§22)
 verifier.mjs    lance les auto-tests du noyau sous Node, hors navigateur
 mutation.mjs    vérifie que ces auto-tests savent devenir rouges
+sonde.mjs       pilote la page dans Chrome headless pour vérifier l'interface
+CLAUDE.md       invariants du projet, à l'usage d'un agent qui vient y toucher
 README.md       ce fichier
 ```
+
+`sonde.mjs` est le seul fichier à demander autre chose que Node — il lui faut
+Chrome. C'est un outil de développement : l'application n'a toujours aucune
+dépendance.
