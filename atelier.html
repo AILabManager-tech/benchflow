@@ -758,9 +758,13 @@ const brut = v => (v === undefined || v === null) ? undefined : v.v;
 
 /** Compile une expression utilisateur une seule fois et met en cache.
  *  Une expression fautive lève : l'appelant en fera une anomalie. */
+const CACHE_MAX = 400;
 const _cacheExpr = new Map();
 function compileExpr(src, args){
   const cle = args.join(",") + "|" + src;
+  /* Chaque frappe dans un champ d'expression fabrique une clé de plus. Sans
+     borne, une longue séance accumulerait des milliers de fonctions compilées. */
+  if (_cacheExpr.size > CACHE_MAX && !_cacheExpr.has(cle)) _cacheExpr.clear();
   if (_cacheExpr.has(cle)) {
     const c = _cacheExpr.get(cle);
     if (c.err) throw c.err;
@@ -781,6 +785,7 @@ function compileExpr(src, args){
 const _cacheCorps = new Map();
 function compileCorps(src, args){
   const cle = args.join(",") + "|#|" + src;
+  if (_cacheCorps.size > CACHE_MAX && !_cacheCorps.has(cle)) _cacheCorps.clear();
   if (_cacheCorps.has(cle)) {
     const c = _cacheCorps.get(cle);
     if (c.err) throw c.err;
@@ -1134,8 +1139,11 @@ fusionner: {
   fn(p, e){
     const vals = COMP.fusionner.entrees(p).map(k => e[k]).filter(v => v !== undefined);
     if (!vals.length) return {};
+    /* Une anomalie contamine la fusion, quel que soit le mode — y compris
+       « liste », où elle se serait sinon changée en simple chaîne de caractères :
+       le puits aurait alors reçu une liste d'apparence normale. */
     const ano = vals.find(estAnomalie);
-    if (ano && p.mode !== "liste") return { z: ano };   // une anomalie contamine la fusion : on la transmet
+    if (ano) return { z: ano };
     // Un mode inconnu devient une anomalie plutôt que de retomber en douce sur la
     // somme : un repli silencieux donnerait un chiffre faux sans que rien ne le dise.
     if (p.mode === "première arrivée") return { z: vals[0] };
@@ -1153,7 +1161,7 @@ fusionner: {
   py: p => [`vals = [v for v in e.values() if v is not None]`,
             `if not vals: return {}`,
             `bad = next((v for v in vals if v["t"] == "anomalie"), None)`,
-            `if bad and p["mode"] != "liste": return {"z": bad}`,
+            `if bad: return {"z": bad}`,
             `if p["mode"] == "première arrivée": return {"z": vals[0]}`,
             `if p["mode"] == "liste": return {"z": val([brut(v) for v in vals], "liste")}`,
             `if p["mode"] == "concaténer": return {"z": val(" ".join(aff(v) for v in vals), "texte")}`,
@@ -1167,6 +1175,10 @@ fenetre: {
   aide:"Regroupe les valeurs par paquets d'une taille donnée.",
   entrees:["x"], sorties:["lot"], mangeAnomalie:true,
   params:[{k:"taille", l:"Taille du lot", t:"nombre", d:"3"}],
+  reste(etat, p){
+    const n = (etat.tampon || []).length;
+    return n ? { n, txt: `${n} valeur(s) retenue(s) dans un lot de ${nb(p.taille, 3)} jamais complété` } : null;
+  },
   fn(p, e, ctx){
     const n = Math.max(1, Math.floor(nb(p.taille, 3)));
     (ctx.etat.tampon ??= []).push(brut(e.x));
@@ -1483,12 +1495,18 @@ function compileForge(def){
   const sorties = (def.sorties || []).filter(s => NOM_PORT.test(s));
   const params  = (def.params  || []).filter(p => NOM_PORT.test(p.k));
   const noms = entrees.concat(params.map(p => p.k), ["etat","aide","hasard","note","anomalie","temps","p","e"]);
+  /* Les descriptions des blocs livrés contiennent du balisage volontaire ; celles
+     d'un bloc forgé viennent d'ailleurs — parfois d'un fichier reçu. Elles sont
+     ramenées à du texte avant d'atteindre l'interface. */
+  const texte = x => String(x === undefined || x === null ? "" : x).replace(/[<>&]/g, c =>
+    ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c]);
   return {
     forge: true, def,
     nom: def.nom || "Bloc forgé", ic: def.ic || "★", coul: def.coul || "var(--texte)",
     cat: "Forgés", lat: nb(def.lat, 30),
-    aide: def.aide || "Bloc forgé sur mesure.",
-    entrees, sorties, params,
+    aide: texte(def.aide) || "Bloc forgé sur mesure.",
+    entrees, sorties,
+    params: params.map(x => Object.assign({}, x, { l: texte(x.l), aide: x.aide ? texte(x.aide) : undefined })),
     mangeAnomalie: !!def.mangeAnomalie,
     attendTout: !!def.attendTout,
     fn(p, e, ctx){
@@ -1517,7 +1535,8 @@ function compileForge(def){
       return o;
     },
     tsortie(){ const o = {}; sorties.forEach(s => o[s] = "quelconque"); return o; },
-    py: () => `return js_corps(p["_corps_forge"], {})   # bloc forgé : corps JavaScript non traduit`
+    py: () => `raise RuntimeError("« ${(def.nom || "bloc forgé").replace(/"/g, "'")} » est un bloc forgé : `
+      + `son corps est du JavaScript, non traduit en Python. Réécris-le ici, ou garde ce bloc dans l'atelier.")`
   };
 }
 
@@ -1543,6 +1562,58 @@ const VERSION_FORMAT = 2;
 function montageVide(){
   return { version: VERSION_FORMAT, titre: "Montage sans titre",
            blocs: [], liens: [], zones: [], forges: [], scenarios: [] };
+}
+
+/** Remet d'aplomb un montage venu d'ailleurs : identifiants uniques, fils dont
+ *  les deux extrémités existent. Rien n'est corrigé en douce — chaque retouche
+ *  revient dans `notes`, pour être montrée à qui ouvre le fichier.
+ *
+ *  Deux blocs partageant un identifiant, c'est une ambiguïté qu'on ne peut pas
+ *  lever : l'atelier n'en verrait qu'un, les fils s'attacheraient au premier, et
+ *  déplacer l'un bougerait l'autre. On renumérote donc, et on le dit. */
+function normaliseMontage(M){
+  const notes = [];
+  const vus = new Set();
+  let compteur = 0;
+  const neuf = prefixe => { let id; do { id = prefixe + "r" + (++compteur); } while (vus.has(id)); return id; };
+
+  const dedoublonne = (liste, prefixe, quoi) => {
+    (liste || []).forEach(x => {
+      if (!x || x.id === undefined || x.id === null) x.id = neuf(prefixe);
+      if (vus.has(x.id)){
+        const ancien = x.id;
+        x.id = neuf(prefixe);
+        x.__renomme = ancien;
+        notes.push(`${quoi} « ${x.nom || ancien} » portait l'identifiant « ${ancien} », déjà pris : renuméroté en « ${x.id} ».`);
+      }
+      vus.add(x.id);
+    });
+  };
+  dedoublonne(M.blocs, "b", "Le bloc");
+  dedoublonne(M.zones, "z", "La section");
+  dedoublonne(M.scenarios, "s", "Le scénario");
+  dedoublonne(M.liens, "l", "Le fil");
+
+  if (M.blocs.some(b => b.__renomme))
+    notes.push("Les fils qui touchaient un identifiant en double sont restés sur le premier bloc portant ce nom : impossible de deviner lequel des deux ils visaient. À vérifier.");
+
+  const existe = new Set(M.blocs.map(b => b.id));
+  const avant = M.liens.length;
+  M.liens = M.liens.filter(l => l && l.de && l.vers && existe.has(l.de.b) && existe.has(l.vers.b));
+  if (M.liens.length !== avant)
+    notes.push(`${avant - M.liens.length} fil(s) retiré(s) : une de leurs extrémités n'existe pas dans ce fichier.`);
+
+  M.blocs.forEach(b => delete b.__renomme);
+  M.zones.forEach(z => delete z.__renomme);
+
+  /* Le compteur doit repartir au-dessus de tout ce qui existe, sinon le prochain
+     bloc créé récupérerait un identifiant déjà en service. */
+  let seq = 0;
+  vus.forEach(id => {
+    const k = parseInt(String(id).replace(/^\D+/, ""), 10);
+    if (Number.isFinite(k)) seq = Math.max(seq, k);
+  });
+  return { notes, seq: seq + 1 };
 }
 
 /** Résout l'indice d'un port : par nom d'abord (robuste aux ports réglables),
@@ -1703,12 +1774,15 @@ function executer(M, opts){
   const majV = {}, majL = {};
   function image(ev, vols){
     if (!o.trace) return;
-    if (R.images.length >= lim.images){
-      if (R.images.length === lim.images){
-        R.images.push({ t: R.temps, jrnN: R.jrn.length, maj: {}, majL: {}, files: {}, actifs: [], vols: [],
-                        note: "enregistrement interrompu — trop d'étapes" });
-      }
-      return;
+    /* Passé la limite, on cesse d'ajouter des étapes — mais on continue de tenir
+       la dernière à jour. Sinon la lecture s'arrêterait sur un état périmé pendant
+       que le journal, lui, montrerait la fin réelle : deux vérités contradictoires
+       à l'écran. */
+    const tronque = R.images.length >= lim.images;
+    if (tronque && !R.traceTronquee){
+      R.traceTronquee = true;
+      jrn("warn", null, `⚠ ${lim.images} étapes enregistrées : la lecture pas à pas s'arrête ici. ` +
+                        `L'exécution, elle, continue — le journal et les mesures restent complets.`);
     }
     const files = {}, actifs = [];
     Object.keys(E).forEach(id => {
@@ -1717,9 +1791,18 @@ function executer(M, opts){
       if (n) files[id] = n;
       if (s.occupe) actifs.push(id);
     });
-    R.images.push({ t: R.temps, k: ev.k, bloc: ev.bloc || null, jrnN: R.jrn.length,
-                    maj: Object.assign({}, majV), majL: Object.assign({}, majL),
-                    files, actifs, vols: vols || [] });
+    const im = { t: R.temps, k: ev.k, bloc: ev.bloc || null, jrnN: R.jrn.length,
+                 maj: Object.assign({}, majV), majL: Object.assign({}, majL),
+                 files, actifs, vols: vols || [], tronquee: tronque };
+    if (tronque){
+      /* On fusionne dans la dernière étape au lieu d'en ajouter une. */
+      const d = R.images[R.images.length - 1];
+      Object.assign(d.maj, im.maj); Object.assign(d.majL, im.majL);
+      d.t = im.t; d.jrnN = im.jrnN; d.files = im.files; d.actifs = im.actifs;
+      d.vols = []; d.tronquee = true;
+    } else {
+      R.images.push(im);
+    }
     for (const k in majV) delete majV[k];
     for (const k in majL) delete majL[k];
   }
@@ -1864,11 +1947,19 @@ function executer(M, opts){
         return;
       }
       sortants.forEach(l => {
-        const cible = indexBloc[l.vers.b]; if (!cible || !E[cible.id]) return;
+        const cible = indexBloc[l.vers.b];
+        if (!cible){
+          jrn("err", b.id, `${b.nom} · le fil partant de « ${port} » vise un bloc absent du montage — ${aff(v)} est perdue`);
+          R.perdus++; return;
+        }
+        if (!E[cible.id]){
+          jrn("err", b.id, `${b.nom} · « ${cible.nom} » ne sait rien faire (comportement inconnu) — ${aff(v)} s'arrête là`);
+          R.perdus++; return;
+        }
         const pe = portsDe(cible.comp, cible.params, "e")[indicePort(cible, "e", l.vers)];
         if (pe === undefined){
-          jrn("err", b.id, `lien cassé : le port d'entrée visé n'existe plus sur « ${cible.nom} »`);
-          return;
+          jrn("err", b.id, `${b.nom} · le port d'entrée visé n'existe plus sur « ${cible.nom} » — ${aff(v)} est perdue`);
+          R.perdus++; return;
         }
         R.liens[l.id].n++; R.liens[l.id].dernier = v; majL[l.id] = v;
         vols.push({ lien: l.id, val: v });
@@ -1876,8 +1967,16 @@ function executer(M, opts){
       });
     });
 
-    if (typeof (ev.sorties || {})._encore === "number" && R.nJetons < lim.jetons)
-      planifie(R.temps + Math.max(0, ev.sorties._encore), "amorce", { bloc: b.id });
+    if (typeof (ev.sorties || {})._encore === "number"){
+      if (R.nJetons < lim.jetons)
+        planifie(R.temps + Math.max(0, ev.sorties._encore), "amorce", { bloc: b.id });
+      else if (!R.arret){
+        /* Couper un générateur sans le dire ferait passer une exécution tronquée
+           pour une exécution terminée. */
+        R.arret = "limite de valeurs atteinte";
+        jrn("err", b.id, `⛔ ${lim.jetons} valeurs émises — « ${b.nom} » est arrêté net. Le résultat est tronqué.`);
+      }
+    }
 
     tenter(b);
     return vols;
@@ -1933,9 +2032,22 @@ function executer(M, opts){
     const c = compDe(b.comp);
     if (c && c.puits && E[b.id]) R.puits[b.id] = (E[b.id].etat.recu || []).slice();
   });
-  const restants = Object.keys(E).reduce((a, id) =>
-    a + Object.values(E[id].buf).reduce((x, q) => x + q.length, 0), 0);
-  if (restants) jrn("warn", null, `${restants} valeur(s) restée(s) en file — le montage n'a pas fini de digérer.`);
+  /* Deux façons pour une valeur de rester coincée : dans la file d'entrée d'un
+     bloc, ou dans la mémoire du bloc lui-même (une fenêtre qui ne s'est jamais
+     complétée). Les deux doivent se dire, sinon des valeurs disparaissent. */
+  let restants = 0;
+  M.blocs.forEach(b => {
+    const s = E[b.id]; if (!s) return;
+    const n = Object.values(s.buf).reduce((x, q) => x + q.length, 0);
+    if (n){ restants += n; jrn("warn", b.id, `${b.nom} · ${n} valeur(s) encore en file d'attente`); }
+    const c = compDe(b.comp);
+    if (c && c.reste){
+      const r = c.reste(s.etat, P(b));
+      if (r){ restants += r.n; jrn("warn", b.id, `${b.nom} · ${r.txt}`); }
+    }
+  });
+  R.restants = restants;
+  if (restants) jrn("warn", null, `${restants} valeur(s) n'ont jamais atteint de puits.`);
   jrn("acc", null, `■ terminé à ${Math.round(R.temps)} ms · ${R.nJetons} valeur(s) · ${R.nAnomalies} anomalie(s)` +
                    (R.cout ? ` · coût ${Math.round(R.cout * 100) / 100}` : ""));
   M.blocs.forEach(b => {
@@ -2137,6 +2249,33 @@ function diagnostics(M){
       ajoute("warn", b.id, `${b.nom} — bloc isolé`, "Aucun fil ne le relie au reste du montage.");
   });
 
+  /* Un fil dont une extrémité a disparu ne se voit pas sur le canevas : il n'est
+     pas dessiné. Sans ce diagnostic, il serait parfaitement invisible — et il
+     avalerait des valeurs à chaque exécution. */
+  M.liens.forEach(l => {
+    const bd = M.blocs.find(x => x.id === l.de.b), bv = M.blocs.find(x => x.id === l.vers.b);
+    if (!bd && !bv){ ajoute("err", null, "Fil orphelin", "Ses deux extrémités ont disparu du montage."); return; }
+    if (!bd){ ajoute("err", bv.id, `${bv.nom} — fil venant d'un bloc absent`,
+      "Le bloc d'origine n'existe plus. Ce fil ne peut rien apporter."); return; }
+    if (!bv){ ajoute("err", bd.id, `${bd.nom} — fil vers un bloc absent`,
+      "Le bloc visé n'existe plus : tout ce qui part par ce fil est perdu à l'exécution."); return; }
+    const listeS = portsDe(bd.comp, bd.params, "s"), listeE = portsDe(bv.comp, bv.params, "e");
+    const ps = listeS[indicePort(bd, "s", l.de)], pe = listeE[indicePort(bv, "e", l.vers)];
+    if (ps === undefined) ajoute("err", bd.id, `${bd.nom} — port de sortie disparu`,
+      `Un fil part d'un port qui n'existe plus, et rien ne le remplace. Il visait « ${bv.nom} ».`);
+    if (pe === undefined) ajoute("err", bv.id, `${bv.nom} — port d'entrée disparu`,
+      `Un fil arrive sur un port qui n'existe plus. Depuis « ${bd.nom} ».`);
+    /* Changer le nombre de voies d'un bloc peut faire disparaître le port d'où
+       partait un fil. On le rattache par position pour ne pas casser le montage —
+       mais un fil qui change de sens sans le dire ferait mentir le schéma. */
+    if (l.de.p !== undefined && ps !== undefined && ps !== l.de.p && !listeS.includes(l.de.p))
+      ajoute("warn", bd.id, `${bd.nom} — un fil a changé de port`,
+        `Il partait de « ${l.de.p} », qui n'existe plus. Il est maintenant rattaché à « ${ps} », vers « ${bv.nom} ». Rebranche-le si ce n'est pas ce que tu veux.`);
+    if (l.vers.p !== undefined && pe !== undefined && pe !== l.vers.p && !listeE.includes(l.vers.p))
+      ajoute("warn", bv.id, `${bv.nom} — un fil a changé de port`,
+        `Il arrivait sur « ${l.vers.p} », qui n'existe plus. Il aboutit maintenant sur « ${pe} », depuis « ${bd.nom} ».`);
+  });
+
   /* Une anomalie qui arrive sur un bloc incapable de la traiter est transmise
      telle quelle. Ce n'est pas une faute — mais mieux vaut l'avoir voulu. */
   const T = typesStatiques(M);
@@ -2217,6 +2356,7 @@ function sourceNoyau(){
   bouts.push(`const TYPES_SIMPLES = ${JSON.stringify(TYPES_SIMPLES)};`);
   bouts.push(`const NOM_PORT = ${NOM_PORT.toString()};`);
   bouts.push(`const LIMITES = ${JSON.stringify(LIMITES)};`);
+  bouts.push(`const CACHE_MAX = ${CACHE_MAX};`);
   bouts.push(`const _cacheExpr = new Map();`);
   bouts.push(`const _cacheCorps = new Map();`);
   bouts.push(`const FORGES = new Map();`);
@@ -3171,6 +3311,105 @@ function lancerTests(){
   eq("… et autant d'arêtes", sch.aretes.length, 2);
   ok("chaque bloc a une vague", sch.blocs.every(b => b.vague >= 1));
   ok("le Mermaid se tient", /flowchart LR/.test(engendreMermaid(Msimple)));
+
+  /* ── aucun repli silencieux : les six chemins retrouvés en revue ───── */
+  G("Aucun repli silencieux");
+
+  const Mpend = { version:2, titre:"t", zones:[], forges:[], scenarios:[],
+    blocs:[{ id:"p1", comp:"source", nom:"S", x:0, y:0, params: defauts("source") }],
+    liens:[{ id:"pl", de:{b:"p1",i:0,p:"valeur"}, vers:{b:"disparu",i:0,p:"x"} }] };
+  const Rpend = executer(Mpend, { trace:false });
+  ok("un fil vers un bloc absent est dénoncé, pas avalé",
+     Rpend.jrn.some(l => /vise un bloc absent/.test(l.txt)) && Rpend.perdus === 1);
+  ok("… et le diagnostic le voit sans exécuter",
+     diagnostics(Mpend).some(d => d.niveau === "err" && /fil vers un bloc absent/i.test(d.titre)));
+
+  const Minco = { version:2, titre:"t", zones:[], forges:[], scenarios:[],
+    blocs:[{ id:"q1", comp:"source", nom:"S", x:0, y:0, params: defauts("source") },
+           { id:"q2", comp:"licorne", nom:"?", x:0, y:0, params:{} }],
+    liens:[{ id:"ql", de:{b:"q1",i:0,p:"valeur"}, vers:{b:"q2",i:0,p:"x"} }] };
+  ok("une valeur envoyée à un comportement inconnu ne disparaît pas en silence",
+     executer(Minco, { trace:false }).jrn.some(l => /ne sait rien faire/.test(l.txt)));
+
+  const Mfen = monte("t", [["generateur","G",0,0,{loi:"suite",n:"5",cadence:"10"}],
+                           ["fenetre","W",0,0,{taille:"3"}],["sortie","O",0,0]],
+                          [[0,"valeur",1,"x"],[1,"lot",2,"x"]]);
+  const Rfen = executer(Mfen, { trace:false });
+  eq("une fenêtre inachevée déclare ce qu'elle retient", Rfen.restants, 2);
+  ok("… et le journal le dit", Rfen.jrn.some(l => /jamais complété/.test(l.txt)));
+
+  const Mgen = monte("t", [["generateur","G",0,0,{loi:"suite",n:"999999",cadence:"1",_lat:"0"}],
+                           ["sortie","O",0,0]], [[0,"valeur",1,"x"]]);
+  const Rgen2 = executer(Mgen, { trace:false, limites:{ evenements:100000, jetons:300 } });
+  eq("un générateur coupé par la limite l'annonce", Rgen2.arret, "limite de valeurs atteinte");
+  ok("… avec une ligne de journal explicite", Rgen2.jrn.some(l => /tronqué/.test(l.txt)));
+
+  const Mtr = monte("t", [["generateur","G",0,0,{loi:"suite",n:"400",cadence:"1",_lat:"0"}],
+                          ["compter","C",0,0],["sortie","O",0,0]],
+                         [[0,"valeur",1,"x"],[1,"n",2,"x"]]);
+  const Rtr = executer(Mtr, { trace:true, limites:{ images:50 } });
+  eq("l'enregistrement s'arrête à la limite d'images", Rtr.images.length, 50);
+  ok("… en le disant", Rtr.jrn.some(l => /lecture pas à pas s'arrête/.test(l.txt)));
+  eq("… et la dernière image reste à jour malgré la troncature",
+     Rtr.images[Rtr.images.length - 1].maj[Mtr.blocs[1].id]
+       ? aff(Rtr.images[Rtr.images.length - 1].maj[Mtr.blocs[1].id]) : "—",
+     aff(Rtr.blocs[Mtr.blocs[1].id].dernier));
+
+  const Mvoie = monte("t", [["source","S",0,0,{valeur:"500",type:"nombre"}],
+                            ["aiguiller","A",0,0,{voies:"x > 100\nx > 10"}],
+                            ["sortie","G",0,0],["sortie","M",0,0],["sortie","P",0,0]],
+                           [[0,"valeur",1,"x"],[1,"voie 1",2,"x"],[1,"voie 2",3,"x"],[1,"autre",4,"x"]]);
+  ok("un montage cohérent n'invente pas de fil rebranché",
+     !diagnostics(Mvoie).some(d => /changé de port/.test(d.titre)));
+  Mvoie.blocs[1].params.voies = "x > 100";
+  ok("retirer une voie signale les fils qui changent de port",
+     diagnostics(Mvoie).some(d => d.niveau === "warn" && /changé de port/.test(d.titre)));
+  ok("… en nommant l'ancien port et le nouveau",
+     diagnostics(Mvoie).some(d => /voie 2/.test(d.detail) && /autre/.test(d.detail)));
+
+  const Mforge2 = compileForge({ id:"f:x", nom:"X", entrees:["x"], sorties:["y"],
+    aide:"<img src=x onerror=alert(1)>", params:[], corps:"return { y: x };" });
+  ok("la description d'un bloc forgé est ramenée à du texte",
+     !/[<>]/.test(Mforge2.aide) && /img src/.test(Mforge2.aide));
+
+  const Mano2 = monte("t", [["source","A",0,0,{valeur:"zzz",type:"nombre"}],
+                            ["source","B",0,0,{valeur:"3",type:"nombre"}],
+                            ["fusionner","F",0,0,{mode:"liste",voies:"2"}],
+                            ["sortie","O",0,0]],
+                           [[0,"valeur",2,"a"],[1,"valeur",2,"b"],[2,"z",3,"x"]]);
+  ok("une anomalie ne se change pas en texte anodin dans une liste",
+     estAnomalie(executer(Mano2, { trace:false }).puits[Mano2.blocs[3].id][0]));
+
+  G("Montages venus d'ailleurs");
+  const Mdbl = { version:2, titre:"d", zones:[], forges:[], scenarios:[],
+    blocs:[{ id:"z1", comp:"source", nom:"A", x:0, y:0, params: defauts("source") },
+           { id:"z1", comp:"sortie", nom:"B", x:0, y:0, params:{} }],
+    liens:[] };
+  const remis = normaliseMontage(Mdbl);
+  eq("un identifiant en double est renuméroté", new Set(Mdbl.blocs.map(b => b.id)).size, 2);
+  ok("… et la retouche est rapportée", remis.notes.some(t => /déjà pris/.test(t)));
+  ok("… et l'ambiguïté sur les fils est signalée", remis.notes.some(t => /impossible de deviner/.test(t)));
+
+  const Mfil = { version:2, titre:"d", zones:[], forges:[], scenarios:[],
+    blocs:[{ id:"k1", comp:"source", nom:"A", x:0, y:0, params: defauts("source") }],
+    liens:[{ id:"kl", de:{b:"k1",i:0}, vers:{b:"fantome",i:0} }] };
+  const remis2 = normaliseMontage(Mfil);
+  eq("un fil sans extrémité est retiré", Mfil.liens.length, 0);
+  ok("… en le disant", remis2.notes.some(t => /extrémités n'existe pas/.test(t)));
+
+  const Msain = EXEMPLES["Contrôle et réparation"]();
+  const avant = JSON.stringify(Msain);
+  const remis3 = normaliseMontage(Msain);
+  eq("un montage sain traverse la normalisation sans une retouche", remis3.notes.length, 0);
+  eq("… et sans être modifié", JSON.stringify(Msain), avant);
+  ok("le compteur repart au-dessus des identifiants existants",
+     remis3.seq > Math.max(...Msain.blocs.map(b => parseInt(b.id.slice(1), 10))));
+
+  G("Bornes");
+  const tailleAvant = _cacheExpr.size;
+  for (let i = 0; i < CACHE_MAX + 60; i++){ try { evalue("x + " + i, val(1)); } catch(e){} }
+  ok("le cache d'expressions reste borné", _cacheExpr.size <= CACHE_MAX + 1,
+     `taille ${_cacheExpr.size} (avant ${tailleAvant})`);
 
   /* ── les exemples livrés ──────────────────────────────────────────── */
   G("Montages d'exemple");
@@ -4224,10 +4463,13 @@ function dessineScenarios(){
 
   (M.scenarios || []).forEach((sc, i) => {
     const r = dernierScen && dernierScen[sc.id];
-    const etat = !r ? "" : r.ok ? "ok" : "err";
+    /* Un scénario qui n'affirme rien n'a pas échoué : il n'a rien vérifié.
+       L'afficher en rouge ferait chercher un bug inexistant. */
+    const etat = !r ? "" : r.vide ? "warn" : r.ok ? "ok" : "err";
+    const mot = !r ? "—" : r.vide ? "vide" : r.ok ? "vert" : "rouge";
     h += `<div class="carte ${etat}">
       <div class="tt">
-        <span class="puce ${etat}">${r ? (r.ok ? "vert" : "rouge") : "—"}</span>
+        <span class="puce ${etat}">${mot}</span>
         <input data-sc-nom="${sc.id}" value="${ech(sc.nom)}"
           style="flex:1;border:0;background:transparent;font-weight:600;font-size:12.5px;padding:0">
         <button class="btn sm plat" data-sc-run="${sc.id}" title="Vérifier ce scénario">▶</button>
@@ -4339,7 +4581,10 @@ function verifieScenarios(){
   r.resultats.forEach(x => dernierScen[x.id] = x);
   dessineScenarios();
   vaOnglet("v-scen");
-  pain(`${r.reussis}/${r.total} scénario(s) vert(s)`, r.reussis === r.total ? "ok" : "err");
+  const vides = r.resultats.filter(x => x.vide).length;
+  const juges = r.total - vides;
+  pain(`${r.reussis}/${juges} scénario(s) vert(s)` + (vides ? ` · ${vides} sans aucune attente` : ""),
+       vides === r.total ? "" : r.reussis === juges ? "ok" : "err");
 }
 
 /* ── mesures ─────────────────────────────────────────────────────────────── */
@@ -4502,7 +4747,7 @@ function vaEtape(i, sansAnim){
      le dernier événement, il n'appartient à aucune image. */
   dessineJournal(n >= R.images.length - 1 ? undefined : (im ? im.jrnN : undefined));
   $("t-scrub").value = n;
-  $("t-etape").textContent = `${n + 1}/${R.images.length}`;
+  $("t-etape").textContent = R.images.length ? `${n + 1}/${R.images.length}` : "0/0";
   $("t-horloge").textContent = `${Math.round(im ? im.t : 0)} ms`;
   if (!sansAnim && im && im.vols && im.vols.length && n === avant + 1) animeVols(im.vols);
 }
@@ -4872,7 +5117,14 @@ return { y: x * facteur };`
 
 function ouvreForge(def){
   forgeEnCours = JSON.parse(JSON.stringify(def || FORGE_MODELE));
-  if (!def) forgeEnCours.id = "f:" + Date.now().toString(36);
+  if (!def){
+    /* Date.now() seul suffirait presque — mais deux forges dans la même
+       milliseconde écraseraient la première sans prévenir. */
+    let id;
+    do { id = "f:" + Date.now().toString(36) + (++seq).toString(36); }
+    while ((M.forges || []).some(f => f.id === id));
+    forgeEnCours.id = id;
+  }
   $("forge-titre").textContent = def ? `Bloc forgé : ${def.nom}` : "Forger un bloc";
   $("forge-suppr").style.display = def ? "" : "none";
   $("forge-res").textContent = "";
@@ -5085,15 +5337,17 @@ function importe(txt){
     const o = JSON.parse(txt);
     if (!o || !Array.isArray(o.blocs)) throw new Error("ce fichier ne contient pas de montage");
     M = Object.assign(montageVide(), o);
-    M.zones ??= []; M.forges ??= []; M.scenarios ??= [];
+    M.zones ??= []; M.forges ??= []; M.scenarios ??= []; M.liens ??= [];
     chargeForges(M.forges);
-    seq = Math.max(o.seq || 0, M.blocs.length + M.liens.length + M.zones.length + M.scenarios.length) + 1;
-    /* Les identifiants importés peuvent dépasser le compteur : on le remonte
-       pour ne jamais fabriquer un doublon. */
-    [...M.blocs, ...M.liens, ...M.zones, ...(M.scenarios || [])].forEach(x => {
-      const n = parseInt(String(x.id).replace(/^\D+/, ""), 10);
-      if (Number.isFinite(n)) seq = Math.max(seq, n);
-    });
+    const remis = normaliseMontage(M);
+    seq = Math.max(remis.seq, nb(o.seq, 0) + 1);
+    if (remis.notes.length){
+      setTimeout(() => ouvreBoite("Ce fichier a dû être remis d'aplomb",
+        `<p class="vide" style="margin-bottom:11px">Le montage est chargé, mais il n'était pas cohérent.
+          Voici tout ce qui a été touché — rien d'autre ne l'a été.</p>` +
+        remis.notes.map(t => `<div class="carte warn"><div class="ds">${ech(t)}</div></div>`).join("") +
+        `<p class="vide" style="margin-top:11px">Regarde l'onglet <b>Problèmes</b> avant de t'y fier.</p>`), 350);
+    }
     deselectionne(); R = null; vueRun = { vals: {}, liens: {}, files: {}, actifs: [] };
     dessinePalette(); dessine(); inspecteur(); panneaux(); dessineJournal();
     HIST.pile = []; HIST.curseur = -1; pousseHist(); sauve();
@@ -5351,11 +5605,10 @@ function tenteMigration(){
   if (!src || !Array.isArray(src.blocs) || !src.blocs.length) return false;
 
   const { M: N, notes } = migreV1(src);
-  M = N; seq = (v1.seq || 0) + 1000;
-  M.blocs.concat(M.liens, M.zones).forEach(x => {
-    const n = parseInt(String(x.id).replace(/^\D+/, ""), 10);
-    if (Number.isFinite(n)) seq = Math.max(seq, n + 1);
-  });
+  M = N;
+  const remis = normaliseMontage(M);
+  remis.notes.forEach(t => notes.push(t));
+  seq = Math.max(remis.seq, nb(v1.seq, 0) + 1);
   setTimeout(() => ouvreBoite("Un montage de la version précédente a été retrouvé",
     `<p class="vide" style="margin-bottom:11px">Il a été converti : ${M.blocs.length} bloc(s),
       ${M.liens.length} lien(s). L'ancienne sauvegarde n'a pas été touchée — elle reste

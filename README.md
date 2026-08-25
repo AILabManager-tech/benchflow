@@ -114,7 +114,7 @@ Le fichier est coupé en deux moitiés par les marqueurs `@noyau:debut` / `@noya
 touche jamais au DOM. Il tourne donc tel quel hors du navigateur :
 
 ```
-node verifier.mjs        181 assertions, puis engendre et exécute
+node verifier.mjs        205 assertions, puis engendre et exécute
                          les 4 exemples en JavaScript et en Python
 node verifier.mjs -v     détail de chaque assertion
 node verifier.mjs --rapide   assertions seulement
@@ -123,7 +123,18 @@ node verifier.mjs --rapide   assertions seulement
 Les mêmes assertions tournent dans la page, onglet **Moteur**. Un seul jeu de tests, deux
 endroits pour le lancer.
 
+Un groupe d'assertions porte le nom **« Aucun repli silencieux »** : il tient en respect les
+chemins par lesquels une valeur pourrait disparaître sans un mot — fil vers un bloc absent,
+lot jamais complété, générateur coupé par une limite, enregistrement tronqué, anomalie
+changée en texte anodin, fil rebranché sur un autre port après un changement de réglage.
+Chacun de ces cas a existé dans le code et a été refermé ; les assertions sont là pour
+qu'ils ne reviennent pas.
+
 ## Reprise de l'esquisse
+
+Un montage ouvert depuis un fichier passe d'abord par une remise d'aplomb : identifiants
+uniques, fils dont les deux extrémités existent. Ce n'est jamais fait en douce — une boîte
+énumère chaque retouche.
 
 L'esquisse précédente enregistrait son montage sous la clé `atelier`. Au premier
 démarrage, s'il en existe un, il est **converti et chargé**, avec un récapitulatif de ce
