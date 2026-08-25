@@ -1,0 +1,791 @@
+<title>Atelier de blocs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+<style>
+:root{
+  --ground:#EDEFF2; --surface:#FFFFFF; --surface-2:#F6F8FA; --surface-3:#E4E8ED;
+  --ink:#10161D; --ink-2:#3D4A57; --ink-3:#6B7986;
+  --line:#D2D9E0; --line-2:#BCC6D0; --grid:#DDE2E8;
+  --accent:#0E7C86; --accent-soft:#D6EDEF; --accent-ink:#095A62;
+  --ok:#2E7D5B; --ok-soft:#DCEFE5;
+  --warn:#B07A12; --warn-soft:#F7EBD2;
+  --crit:#B33A34; --crit-soft:#F7E0DE;
+  --abst:#5A6B7D; --abst-soft:#E3E8ED;
+  --nombre:#4E6FA8; --texte:#7355A0; --booleen:#8A6D3B; --anomalie:#B33A34;
+  --shadow:0 1px 2px rgba(16,22,29,.06),0 4px 12px rgba(16,22,29,.05);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0B1117; --surface:#131B23; --surface-2:#18222B; --surface-3:#22303B;
+  --ink:#E4E9EE; --ink-2:#A9B6C2; --ink-3:#7A8996;
+  --line:#25323D; --line-2:#33434F; --grid:#18222B;
+  --accent:#35C6D4; --accent-soft:#0E3A40; --accent-ink:#7FDDE7;
+  --ok:#4BB183; --ok-soft:#12332A; --warn:#D8A33F; --warn-soft:#3A2F14;
+  --crit:#E0645C; --crit-soft:#3B1E1C; --abst:#8497A8; --abst-soft:#1D2833;
+  --nombre:#7FA0DC; --texte:#A98CD8; --booleen:#C4A465; --anomalie:#E0645C;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
+}}
+:root[data-theme="dark"]{
+  --ground:#0B1117; --surface:#131B23; --surface-2:#18222B; --surface-3:#22303B;
+  --ink:#E4E9EE; --ink-2:#A9B6C2; --ink-3:#7A8996;
+  --line:#25323D; --line-2:#33434F; --grid:#18222B;
+  --accent:#35C6D4; --accent-soft:#0E3A40; --accent-ink:#7FDDE7;
+  --ok:#4BB183; --ok-soft:#12332A; --warn:#D8A33F; --warn-soft:#3A2F14;
+  --crit:#E0645C; --crit-soft:#3B1E1C; --abst:#8497A8; --abst-soft:#1D2833;
+  --nombre:#7FA0DC; --texte:#A98CD8; --booleen:#C4A465; --anomalie:#E0645C;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0; background:var(--ground); color:var(--ink); overflow:hidden;
+  font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:14px; line-height:1.5}
+h1{margin:0; font-size:16px; font-weight:600; letter-spacing:-.012em}
+button,select,input,textarea{font:inherit; color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+.lbl{font-size:10.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3)}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+
+.app{display:grid; grid-template-rows:auto 1fr; height:100%}
+.bar{display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:9px 16px;
+  background:var(--surface); border-bottom:1px solid var(--line); z-index:5}
+.bar .sp{flex:1}
+.btn{padding:6px 12px; border-radius:6px; border:1px solid var(--line-2);
+  background:var(--surface-2); font-size:12.5px; font-weight:600}
+.btn:hover{border-color:var(--accent); color:var(--accent-ink)}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+.btn.primary:hover{filter:brightness(1.09); color:#fff}
+.btn:disabled{opacity:.45; cursor:default}
+.btn.sm{padding:4px 9px; font-size:11.5px}
+
+.main{display:grid; grid-template-columns:212px 1fr 300px; overflow:hidden}
+@media (max-width:1080px){.main{grid-template-columns:180px 1fr}.insp{display:none}}
+.side{background:var(--surface); border-right:1px solid var(--line); overflow-y:auto; padding:13px}
+.insp{background:var(--surface); border-left:1px solid var(--line); border-right:0; overflow-y:auto; padding:13px}
+.side h2,.insp h2{font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-3); margin:0 0 9px}
+
+.pal{display:flex; flex-direction:column; gap:5px; margin-bottom:16px}
+.pal button{display:grid; grid-template-columns:22px 1fr; gap:9px; align-items:center;
+  text-align:left; padding:7px 9px; border-radius:6px; border:1px solid var(--line);
+  background:var(--surface-2); font-size:12.5px; font-weight:500}
+.pal button:hover{border-color:var(--accent); background:var(--accent-soft)}
+.pal .ic{width:22px; height:22px; border-radius:5px; display:grid; place-items:center;
+  font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:700; color:#fff}
+.pal small{display:block; font-size:10.5px; color:var(--ink-3); font-weight:400; line-height:1.3}
+
+.wrap{position:relative; overflow:hidden; cursor:grab;
+  background:linear-gradient(var(--grid) 1px,transparent 1px) 0 0/24px 24px,
+             linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/24px 24px,var(--ground)}
+.wrap.grabbing{cursor:grabbing}
+.wrap.linking{cursor:crosshair}
+#scene{position:absolute; inset:0; transform-origin:0 0}
+#fils{position:absolute; left:0; top:0; width:6000px; height:4000px; overflow:visible; pointer-events:none}
+
+.fil{fill:none; stroke:var(--ink-3); stroke-width:2.2; stroke-linejoin:miter}
+.fil.actif{stroke:var(--accent); stroke-width:3; stroke-dasharray:7 5; animation:cours .55s linear infinite}
+.fil.passe{stroke:var(--accent); opacity:.75}
+.fil.sel{stroke:var(--crit); stroke-width:3.4}
+.fil.zone{stroke:transparent; stroke-width:15; pointer-events:stroke; cursor:pointer}
+@keyframes cours{to{stroke-dashoffset:-24}}
+@media (prefers-reduced-motion:reduce){.fil.actif{animation:none}}
+.tete{fill:var(--ink-3)} .tete.passe{fill:var(--accent); opacity:.75} .tete.actif{fill:var(--accent)}
+.jeton{font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:600;
+  paint-order:stroke; stroke:var(--ground); stroke-width:4px; stroke-linejoin:round}
+
+.bloc{position:absolute; width:168px; background:var(--surface);
+  border:2px solid var(--line-2); border-left-width:6px; border-radius:4px;
+  box-shadow:var(--shadow); padding:8px 10px 9px; cursor:move; user-select:none}
+.bloc.sel{outline:2px solid var(--accent); outline-offset:2px}
+.bloc.court{border-color:var(--accent); box-shadow:var(--shadow),0 0 0 4px var(--accent-soft)}
+.bloc .tt{display:flex; align-items:center; gap:6px}
+.bloc .cmp{font-family:"IBM Plex Mono",monospace; font-size:9px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase}
+.bloc .nm{font-size:12.5px; font-weight:600; margin-top:1px; line-height:1.25;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.bloc .val{font-family:"IBM Plex Mono",monospace; font-size:10.5px; margin-top:6px;
+  background:var(--surface-2); border-radius:3px; padding:2px 6px; min-height:16px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink-2)}
+.bloc .pastille{margin-left:auto; width:9px; height:9px; border-radius:50%; background:var(--line-2)}
+.bloc.court .pastille{background:none; border:2px solid var(--accent-soft);
+  border-top-color:var(--accent); animation:tourne .6s linear infinite}
+@keyframes tourne{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.bloc.court .pastille{animation:none;background:var(--accent);border:0}}
+
+.port{position:absolute; width:13px; height:13px; border-radius:50%;
+  background:var(--surface); border:2.5px solid var(--line-2); cursor:crosshair; z-index:3}
+.port:hover,.port.cible{border-color:var(--accent); background:var(--accent-soft); transform:scale(1.25)}
+.port.e{left:-8px} .port.s{right:-8px}
+.port .etq{position:absolute; font-size:9px; font-family:"IBM Plex Mono",monospace;
+  color:var(--ink-3); white-space:nowrap; top:-1px; pointer-events:none}
+.port.s .etq{left:17px} .port.e .etq{right:17px}
+
+.zone-s{position:absolute; border:1.5px solid; border-radius:8px; z-index:0; cursor:move}
+.zone-s.sel{outline:2px solid var(--accent); outline-offset:2px}
+.zone-s > .ti{position:absolute; top:-10px; left:12px; background:var(--ground); padding:1px 8px;
+  border-radius:3px; font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  white-space:nowrap; user-select:none}
+.zone-s > .poi{position:absolute; right:-6px; bottom:-6px; width:14px; height:14px; border-radius:3px;
+  background:var(--surface); border:2px solid currentColor; cursor:nwse-resize}
+.bloc{z-index:2}
+
+.champ{margin-bottom:11px}
+.champ label{display:block; font-size:11px; font-weight:600; color:var(--ink-3); margin-bottom:3px}
+.champ input,.champ select,.champ textarea{width:100%; padding:6px 8px; border-radius:5px;
+  border:1px solid var(--line-2); background:var(--surface-2); font-size:12.5px}
+.champ textarea{font-family:"IBM Plex Mono",monospace; font-size:11.5px; resize:vertical; min-height:56px}
+.champ .aide{font-size:10.5px; color:var(--ink-3); margin-top:3px; line-height:1.4}
+
+.jrn{font-family:"IBM Plex Mono",monospace; font-size:10.5px; line-height:1.6;
+  max-height:230px; overflow-y:auto; background:var(--surface-2); border:1px solid var(--line);
+  border-radius:6px; padding:8px}
+.jrn div{white-space:pre-wrap; word-break:break-word}
+.jrn .ok{color:var(--ok)} .jrn .err{color:var(--crit)} .jrn .acc{color:var(--accent-ink)}
+.jrn .gris{color:var(--ink-3)}
+
+.t-nombre{background:var(--nombre)} .t-texte{background:var(--texte)}
+.t-booleen{background:var(--booleen)} .t-anomalie{background:var(--anomalie)}
+.c-nombre{color:var(--nombre)} .c-texte{color:var(--texte)}
+.c-booleen{color:var(--booleen)} .c-anomalie{color:var(--anomalie)}
+.vide{color:var(--ink-3); font-size:12px; line-height:1.5}
+.rang{display:flex; gap:6px}
+.rang .btn{flex:1}
+.leg{display:flex; gap:5px 12px; flex-wrap:wrap; font-size:11px; color:var(--ink-2); margin-top:9px}
+.leg i{display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:4px; vertical-align:-1px}
+</style>
+
+<div class="app">
+<div class="bar">
+  <h1>Atelier de blocs</h1>
+  <span class="lbl" id="etat-doc">—</span>
+  <div class="sp"></div>
+  <button class="btn primary" id="run">Exécuter</button>
+  <button class="btn" id="pas">Pas</button>
+  <button class="btn" id="stop">Arrêter</button>
+  <button class="btn" id="vider">Vider</button>
+  <span style="width:1px;height:22px;background:var(--line)"></span>
+  <button class="btn" id="exemple">Exemple</button>
+  <button class="btn" id="exporter">Exporter</button>
+  <button class="btn" id="importer">Importer</button>
+  <button class="btn" id="vers-blocs" title="Produire un schema.json pour la skill /blocs">→ schema.json</button>
+  <button class="btn" id="theme">Thème</button>
+</div>
+
+<div class="main">
+  <div class="side">
+    <h2>Ajouter un bloc</h2>
+    <div class="pal" id="pal"></div>
+    <h2>Types de valeur</h2>
+    <div class="leg">
+      <span><i class="t-nombre"></i>nombre</span>
+      <span><i class="t-texte"></i>texte</span>
+      <span><i class="t-booleen"></i>booléen</span>
+      <span><i class="t-anomalie"></i>anomalie</span>
+    </div>
+    <h2 style="margin-top:16px">Aide</h2>
+    <p class="vide">Tire un fil d'un point <b>de sortie</b> vers un point <b>d'entrée</b>.
+      Glisse un bloc pour le déplacer, le fond pour bouger la vue.
+      <b>Suppr</b> efface la sélection.</p>
+  </div>
+
+  <div class="wrap" id="wrap">
+    <div id="scene"><svg id="fils"></svg></div>
+  </div>
+
+  <div class="insp">
+    <h2>Bloc sélectionné</h2>
+    <div id="form"><p class="vide">Aucun bloc sélectionné.</p></div>
+    <h2 style="margin-top:16px">Journal</h2>
+    <div class="jrn" id="jrn"><div class="gris">Prêt.</div></div>
+  </div>
+</div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   ATELIER DE BLOCS — bac à sable de flux de données
+   Des valeurs typées circulent de bloc en bloc; chaque bloc
+   applique une petite fonction. Rien n'est masqué : une erreur
+   devient une anomalie qui voyage, pas un échec silencieux.
+   ============================================================ */
+
+const TYPES = ["nombre","texte","booleen","anomalie"];
+
+/* ---- comportements : ce qu'un bloc sait faire ---- */
+const COMP = {
+  source: {
+    nom:"Source", ic:"S", coul:"var(--ok)",
+    aide:"Émet une valeur. Point de départ du flux.",
+    entrees:[], sorties:["valeur"],
+    params:[{k:"valeur",l:"Valeur émise",t:"texte",d:"42"},
+            {k:"type",l:"Type",t:"choix",o:TYPES.slice(0,3),d:"nombre"}],
+    fn(p){ return {valeur:conv(p.valeur, p.type)}; }
+  },
+  transformer: {
+    nom:"Transformer", ic:"T", coul:"var(--accent)",
+    aide:"Applique une expression à l'entrée. « x » est la valeur reçue.",
+    entrees:["x"], sorties:["y"],
+    params:[{k:"expr",l:"Expression",t:"code",d:"x * 2",
+             aide:"JavaScript. Exemples : x*2 · x+1 · String(x).toUpperCase() · Math.round(x)"}],
+    fn(p, e){ return {y:{t:"auto", v:evalue(p.expr, e.x)}}; }
+  },
+  valider: {
+    nom:"Valider", ic:"V", coul:"var(--ok)",
+    aide:"Teste une condition. Échec → anomalie sur la sortie « refus ».",
+    entrees:["x"], sorties:["ok","refus"],
+    params:[{k:"cond",l:"Condition à respecter",t:"code",d:"x > 0",
+             aide:"Vraie → la valeur passe par « ok ». Fausse → anomalie par « refus »."},
+            {k:"motif",l:"Motif du refus",t:"texte",d:"valeur hors domaine"}],
+    fn(p, e){
+      const bon = !!evalue(p.cond, e.x);
+      return bon ? {ok:e.x}
+                 : {refus:{t:"anomalie", v:`${p.motif} — reçu ${aff(e.x)}`}};
+    }
+  },
+  aiguiller: {
+    nom:"Aiguiller", ic:"A", coul:"var(--warn)",
+    aide:"Envoie la valeur d'un côté ou de l'autre selon une condition.",
+    entrees:["x"], sorties:["oui","non"],
+    params:[{k:"cond",l:"Condition",t:"code",d:"x > 10"}],
+    fn(p, e){ return evalue(p.cond, e.x) ? {oui:e.x} : {non:e.x}; }
+  },
+  fusionner: {
+    nom:"Fusionner", ic:"F", coul:"var(--texte)",
+    aide:"Attend plusieurs entrées et les combine.",
+    entrees:["a","b"], sorties:["z"],
+    params:[{k:"mode",l:"Combinaison",t:"choix",o:["somme","concaténer","première arrivée"],d:"somme"}],
+    attendTout:true,
+    fn(p, e){
+      const vals = Object.values(e).filter(v=>v!==undefined);
+      if(!vals.length) return {};
+      // Un mode inconnu devient une anomalie plutôt que de retomber en douce sur la
+      // somme : un repli silencieux donnerait un chiffre faux sans que rien ne le dise.
+      if(p.mode==="première arrivée") return {z:vals[0]};
+      if(p.mode==="concaténer") return {z:{t:"texte", v:vals.map(v=>aff(v)).join(" ")}};
+      if(p.mode==="somme") return {z:{t:"nombre", v:vals.reduce((s,v)=>s+(Number(v.v)||0),0)}};
+      return {z:{t:"anomalie", v:`mode de combinaison inconnu : ${p.mode}`}};
+    }
+  },
+  reparer: {
+    nom:"Réparer", ic:"R", coul:"var(--accent)",
+    aide:"Tente de corriger une anomalie, dans la limite d'un budget.",
+    entrees:["anomalie"], sorties:["réparé","épuisé"],
+    params:[{k:"budget",l:"Tentatives permises",t:"nombre",d:"2"},
+            {k:"reussite",l:"Chance de réussite par tentative (%)",t:"nombre",d:"60"},
+            {k:"remis",l:"Valeur remise si réussi",t:"texte",d:"1"}],
+    fn(p, e, ctx){
+      const budget=Math.max(0,+p.budget||0), pr=(+p.reussite||0)/100;
+      for(let n=1;n<=budget;n++){
+        ctx.note(`tentative ${n}/${budget}`);
+        if(ctx.hasard() < pr*(1-(n-1)*0.12))
+          return {"réparé":{t:"auto", v:conv(p.remis,"nombre").v, tentatives:n}};
+      }
+      return {"épuisé":{t:"anomalie",
+        v:budget? `budget épuisé après ${budget} tentative(s)` : "aucune tentative permise"}};
+    }
+  },
+  compter: {
+    nom:"Compter", ic:"C", coul:"var(--nombre)",
+    aide:"Compte les valeurs qui le traversent.",
+    entrees:["x"], sorties:["n"],
+    params:[], fn(p, e, ctx){ ctx.etat.n=(ctx.etat.n||0)+1; return {n:{t:"nombre", v:ctx.etat.n}}; }
+  },
+  refuser: {
+    nom:"Refuser", ic:"×", coul:"var(--crit)",
+    aide:"Échoue toujours. Sert à éprouver les chemins d'erreur.",
+    entrees:["x"], sorties:["anomalie"],
+    params:[{k:"motif",l:"Motif",t:"texte",d:"capacité absente"}],
+    fn(p){ return {anomalie:{t:"anomalie", v:p.motif}}; }
+  },
+  sortie: {
+    nom:"Sortie", ic:"■", coul:"var(--abst)",
+    aide:"Point d'arrivée. Retient ce qu'il reçoit.",
+    entrees:["x"], sorties:[],
+    params:[], fn(p, e, ctx){ ctx.etat.recu=(ctx.etat.recu||[]); ctx.etat.recu.push(aff(e.x)); return {}; }
+  }
+};
+
+/* ---- valeurs ---- */
+function conv(v, t){
+  if(t==="nombre"){ const n=Number(v); return {t:"nombre", v:Number.isFinite(n)?n:0}; }
+  if(t==="booleen") return {t:"booleen", v:!(v===false||v==="false"||v===""||v==="0")};
+  return {t:"texte", v:String(v)};
+}
+function typeDe(v){
+  if(v && v.t && v.t!=="auto") return v.t;
+  const x=v?v.v:undefined;
+  if(typeof x==="number") return "nombre";
+  if(typeof x==="boolean") return "booleen";
+  return "texte";
+}
+function aff(v){
+  if(v===undefined||v===null) return "—";
+  const x=v.v;
+  if(typeof x==="number") return Number.isInteger(x)?String(x):x.toFixed(2);
+  return String(x);
+}
+function evalue(expr, entree){
+  try{
+    const f = new Function("x", `"use strict"; return (${expr});`);
+    return f(entree ? entree.v : undefined);
+  }catch(err){ throw new Error("expression invalide : "+err.message); }
+}
+
+/* ---- modèle ---- */
+const TEINTES=[["#4E6FA8","#7FA0DC"],["#7355A0","#A98CD8"],["#0E7C86","#35C6D4"],
+               ["#A8478A","#DC80BE"],["#8A6D3B","#C4A465"],["#3E7F9C","#79B8D4"]];
+const sombre = ()=> document.documentElement.getAttribute("data-theme")==="dark" ||
+  (!document.documentElement.getAttribute("data-theme") && matchMedia("(prefers-color-scheme: dark)").matches);
+const teinte = i => TEINTES[i % TEINTES.length][sombre()?1:0];
+
+let M = {blocs:[], liens:[], zones:[]};
+let sel=null, selLien=null, selZone=null, seq=0;
+const P_BLOC={w:168, h:74};
+
+function nouvelleZone(x, y){
+  const z={id:"z"+(++seq), nom:"Section", x:Math.round(x), y:Math.round(y),
+           w:420, h:280, teinte:(M.zones||[]).length % TEINTES.length};
+  (M.zones ??= []).push(z); return z;
+}
+const zone = id => (M.zones||[]).find(z=>z.id===id);
+
+function nouveauBloc(comp, x, y){
+  const c=COMP[comp];
+  const params={}; (c.params||[]).forEach(p=>params[p.k]=p.d);
+  const b={id:"b"+(++seq), comp, nom:c.nom, x:Math.round(x), y:Math.round(y), params};
+  M.blocs.push(b); return b;
+}
+const bloc = id => M.blocs.find(b=>b.id===id);
+const ports = b => ({e:COMP[b.comp].entrees, s:COMP[b.comp].sorties});
+function posPort(b, sens, i){
+  const l=ports(b)[sens], n=l.length||1;
+  return {x: b.x + (sens==="s"?P_BLOC.w:0), y: b.y + 26 + (i+1)*(P_BLOC.h-20)/(n+1)};
+}
+
+/* ---- rendu ---- */
+const scene=document.getElementById("scene"), svg=document.getElementById("fils"), wrap=document.getElementById("wrap");
+function dessine(){
+  scene.querySelectorAll(".bloc,.zone-s").forEach(e=>e.remove());
+  (M.zones||[]).forEach(z=>{
+    const c=teinte(z.teinte);
+    const el=document.createElement("div");
+    el.className="zone-s"+(selZone===z.id?" sel":""); el.id="Z"+z.id;
+    el.style.cssText=`left:${z.x}px; top:${z.y}px; width:${z.w}px; height:${z.h}px;
+      border-color:${c}66; background:${c}12; color:${c};`;
+    el.innerHTML=`<span class="ti" style="color:${c}">${z.nom}</span><span class="poi"></span>`;
+    scene.appendChild(el);
+  });
+  M.blocs.forEach(b=>{
+    const c=COMP[b.comp];
+    const el=document.createElement("div");
+    el.className="bloc"+(sel===b.id?" sel":""); el.id="B"+b.id;
+    el.style.left=b.x+"px"; el.style.top=b.y+"px"; el.style.borderLeftColor=c.coul;
+    const v = etatsRun[b.id] && etatsRun[b.id].sortie;
+    el.innerHTML=`<div class="tt"><span class="cmp" style="color:${c.coul}">${c.nom}</span><span class="pastille"></span></div>
+      <div class="nm">${b.nom}</div>
+      <div class="val ${v?("c-"+typeDe(v)):""}">${v?aff(v):"—"}</div>`;
+    ports(b).e.forEach((p,i)=>{
+      const q=posPort(b,"e",i), d=document.createElement("div");
+      d.className="port e"; d.dataset.b=b.id; d.dataset.sens="e"; d.dataset.i=i;
+      d.style.top=(q.y-b.y-6)+"px"; d.innerHTML=`<span class="etq">${p}</span>`;
+      el.appendChild(d);
+    });
+    ports(b).s.forEach((p,i)=>{
+      const q=posPort(b,"s",i), d=document.createElement("div");
+      d.className="port s"; d.dataset.b=b.id; d.dataset.sens="s"; d.dataset.i=i;
+      d.style.top=(q.y-b.y-6)+"px"; d.innerHTML=`<span class="etq">${p}</span>`;
+      el.appendChild(d);
+    });
+    scene.appendChild(el);
+  });
+  dessineFils();
+  const nz=(M.zones||[]).length;
+  document.getElementById("etat-doc").textContent =
+    `${M.blocs.length} bloc${M.blocs.length>1?"s":""} · ${M.liens.length} lien${M.liens.length>1?"s":""}`
+    + (nz?` · ${nz} section${nz>1?"s":""}`:"");
+  sauve();
+}
+/* Routage orthogonal : segments horizontaux et verticaux seulement. Les blocs se
+   posent librement, donc deux cas — la cible est à droite (route en Z), ou à gauche
+   (on contourne par au-dessus ou par en dessous des deux blocs). */
+function boite(b){ return {x1:b.x-14, y1:b.y-14, x2:b.x+P_BLOC.w+14, y2:b.y+P_BLOC.h+14}; }
+function coupe(pts, exclus){
+  const bs = M.blocs.filter(b=>!exclus.includes(b.id)).map(boite);
+  for(let i=0;i<pts.length-1;i++){
+    const ax=Math.min(pts[i][0],pts[i+1][0]), bx=Math.max(pts[i][0],pts[i+1][0]);
+    const ay=Math.min(pts[i][1],pts[i+1][1]), by=Math.max(pts[i][1],pts[i+1][1]);
+    for(const r of bs) if(ax<=r.x2 && bx>=r.x1 && ay<=r.y2 && by>=r.y1) return true;
+  }
+  return false;
+}
+function route(a, z, bd, bv){
+  const ex = bd?[bd.id,bv.id]:[];
+  if(z.x > a.x + 40){
+    const mid=Math.round((a.x+z.x)/2);
+    const p=[[a.x,a.y],[mid,a.y],[mid,z.y],[z.x,z.y]];
+    if(!bd || !coupe(p,ex)) return p;
+  }
+  // retour en arrière, ou trajet direct bloqué : on contourne
+  const sortie=a.x+30, entree=z.x-30;
+  const hauts=[bd?bd.y:a.y, bv?bv.y:z.y], bas=[(bd?bd.y:a.y)+P_BLOC.h, (bv?bv.y:z.y)+P_BLOC.h];
+  const parHaut=Math.min(...hauts)-34, parBas=Math.max(...bas)+34;
+  for(const y of (Math.abs(parHaut-a.y)<=Math.abs(parBas-a.y) ? [parHaut,parBas] : [parBas,parHaut])){
+    const p=[[a.x,a.y],[sortie,a.y],[sortie,y],[entree,y],[entree,z.y],[z.x,z.y]];
+    if(!bd || !coupe(p,ex)) return p;
+  }
+  return [[a.x,a.y],[sortie,a.y],[sortie,parBas],[entree,parBas],[entree,z.y],[z.x,z.y]];
+}
+function chemin(a, b, bd, bv){ return "M"+route(a,b,bd,bv).map(p=>p[0]+","+p[1]).join(" L"); }
+function dessineFils(){
+  let h="";
+  M.liens.forEach((L,i)=>{
+    const bd=bloc(L.de.b), bv=bloc(L.vers.b);
+    if(!bd||!bv) return;
+    const a=posPort(bd,"s",L.de.i), z=posPort(bv,"e",L.vers.i);
+    const cl = L.actif?"actif" : L.passe?"passe" : "";
+    const s = selLien===L.id?" sel":"";
+    h+=`<path class="fil ${cl}${s}" d="${chemin(a,z,bd,bv)}"/>`;
+    h+=`<polygon class="tete ${cl}" points="${z.x-11},${z.y-5} ${z.x-11},${z.y+5} ${z.x-1},${z.y}"/>`;
+    h+=`<path class="fil zone" data-l="${L.id}" d="${chemin(a,z,bd,bv)}"/>`;
+    if(L.jeton!==undefined){
+      const tr=route(a,z,bd,bv), mi=tr[Math.floor(tr.length/2)];
+      const mx=mi[0], my=mi[1]-9;
+      h+=`<text class="jeton c-${typeDe(L.jeton)}" x="${mx}" y="${my}" text-anchor="middle">${aff(L.jeton)}</text>`;
+    }
+  });
+  if(tirage) h+=`<path class="fil actif" d="M${tirage.a.x},${tirage.a.y} L${tirage.b.x},${tirage.b.y}"/>`;
+  svg.innerHTML=h;
+  svg.querySelectorAll('[data-l]').forEach(p=>p.onclick=e=>{
+    e.stopPropagation(); selLien=p.dataset.l; sel=null; dessine(); formulaire(); });
+}
+
+/* ---- palette ---- */
+document.getElementById("pal").innerHTML = Object.entries(COMP).map(([k,c])=>
+  `<button data-c="${k}"><span class="ic" style="background:${c.coul}">${c.ic}</span>
+   <span>${c.nom}<small>${c.aide}</small></span></button>`).join("");
+document.getElementById("pal").insertAdjacentHTML("beforeend",
+  `<button data-zone="1" style="margin-top:7px;border-style:dashed">
+     <span class="ic" style="background:var(--abst)">▭</span>
+     <span>Encadré de section<small>Regroupe visuellement des blocs. Purement documentaire.</small></span></button>`);
+document.querySelector("#pal [data-zone]").onclick=()=>{
+  const r=wrap.getBoundingClientRect();
+  const x=(r.width/2-vue.x)/vue.z-210, y=(r.height/2-vue.y)/vue.z-140;
+  const z=nouvelleZone(x,y); selZone=z.id; sel=null; selLien=null; dessine(); formulaire();
+};
+document.querySelectorAll("#pal button:not([data-zone])").forEach(b=>b.onclick=()=>{
+  const r=wrap.getBoundingClientRect();
+  const x=(r.width/2 - vue.x)/vue.z - P_BLOC.w/2, y=(r.height/2 - vue.y)/vue.z - P_BLOC.h/2;
+  const nb=nouveauBloc(b.dataset.c, x+ (Math.random()*60-30), y+(Math.random()*60-30));
+  sel=nb.id; selLien=null; dessine(); formulaire();
+});
+
+/* ---- inspecteur ---- */
+function formulaire(){
+  const f=document.getElementById("form");
+  if(selLien){
+    const L=M.liens.find(x=>x.id===selLien);
+    f.innerHTML=`<p class="vide">Lien sélectionné :<br><b class="mono">${L.de.b} → ${L.vers.b}</b></p>
+      <button class="btn sm" id="del-lien" style="width:100%;margin-top:8px">Supprimer ce lien</button>`;
+    document.getElementById("del-lien").onclick=()=>{
+      M.liens=M.liens.filter(x=>x.id!==selLien); selLien=null; dessine(); formulaire(); };
+    return;
+  }
+  if(selZone){
+    const z=zone(selZone);
+    f.innerHTML=`
+      <div class="champ"><label>Nom de la section</label><input id="z-nom" value="${z.nom.replace(/"/g,"&quot;")}"></div>
+      <div class="champ"><label>Couleur</label>
+        <div style="display:flex;gap:5px">${TEINTES.map((_,i)=>
+          `<button data-t="${i}" style="flex:1;height:24px;border-radius:4px;cursor:pointer;
+            border:2px solid ${i===z.teinte?"var(--accent)":"transparent"};background:${teinte(i)}"></button>`).join("")}</div></div>
+      <p class="vide">Glisse le coin pour redimensionner. Un encadré ne change rien à l'exécution — il explique.</p>
+      <button class="btn sm" id="z-del" style="width:100%;margin-top:8px">Supprimer la section</button>`;
+    document.getElementById("z-nom").oninput=e=>{ z.nom=e.target.value; dessine(); };
+    f.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{ z.teinte=+b.dataset.t; dessine(); formulaire(); });
+    document.getElementById("z-del").onclick=()=>{
+      M.zones=M.zones.filter(x=>x.id!==selZone); selZone=null; dessine(); formulaire(); };
+    return;
+  }
+  if(!sel){ f.innerHTML=`<p class="vide">Aucun bloc sélectionné.</p>`; return; }
+  const b=bloc(sel), c=COMP[b.comp];
+  f.innerHTML=`
+    <div class="champ"><label>Nom</label><input id="p-nom" value="${b.nom.replace(/"/g,"&quot;")}"></div>
+    <p class="vide" style="margin:-4px 0 10px">${c.aide}</p>
+    ${(c.params||[]).map(p=>{
+      const v=b.params[p.k]??p.d;
+      if(p.t==="choix") return `<div class="champ"><label>${p.l}</label>
+        <select data-k="${p.k}">${p.o.map(o=>`<option${o===v?" selected":""}>${o}</option>`).join("")}</select></div>`;
+      if(p.t==="code") return `<div class="champ"><label>${p.l}</label>
+        <textarea data-k="${p.k}">${String(v)}</textarea>
+        ${p.aide?`<div class="aide">${p.aide}</div>`:""}</div>`;
+      return `<div class="champ"><label>${p.l}</label>
+        <input data-k="${p.k}" type="${p.t==="nombre"?"number":"text"}" value="${String(v).replace(/"/g,"&quot;")}"></div>`;
+    }).join("")}
+    <div class="rang"><button class="btn sm" id="dup">Dupliquer</button>
+      <button class="btn sm" id="del">Supprimer</button></div>`;
+  document.getElementById("p-nom").oninput=e=>{ b.nom=e.target.value; dessine(); };
+  f.querySelectorAll("[data-k]").forEach(el=>el.oninput=()=>{ b.params[el.dataset.k]=el.value; sauve(); });
+  document.getElementById("dup").onclick=()=>{
+    const n=nouveauBloc(b.comp, b.x+26, b.y+26); n.nom=b.nom; n.params={...b.params};
+    sel=n.id; dessine(); formulaire(); };
+  document.getElementById("del").onclick=()=>{
+    M.liens=M.liens.filter(l=>l.de.b!==sel && l.vers.b!==sel);
+    M.blocs=M.blocs.filter(x=>x.id!==sel); sel=null; dessine(); formulaire(); };
+}
+
+/* ---- interactions : déplacer, relier, naviguer ---- */
+let vue={x:0,y:0,z:1}, glisse=null, tirage=null;
+function applique(){ scene.style.transform=`translate(${vue.x}px,${vue.y}px) scale(${vue.z})`; }
+function pos(e){ const r=wrap.getBoundingClientRect();
+  return {x:(e.clientX-r.left-vue.x)/vue.z, y:(e.clientY-r.top-vue.y)/vue.z}; }
+
+wrap.addEventListener("pointerdown", e=>{
+  const port=e.target.closest(".port");
+  if(port){ e.preventDefault();
+    const b=bloc(port.dataset.b), i=+port.dataset.i;
+    if(port.dataset.sens==="s"){ tirage={de:{b:b.id,i}, a:posPort(b,"s",i), b:pos(e)}; }
+    else { tirage={vers:{b:b.id,i}, a:pos(e), b:posPort(b,"e",i)}; }
+    wrap.classList.add("linking"); return;
+  }
+  const el=e.target.closest(".bloc");
+  if(el){ const b=bloc(el.id.slice(1));
+    sel=b.id; selLien=null; selZone=null; glisse={b, dx:pos(e).x-b.x, dy:pos(e).y-b.y, bouge:0};
+    dessine(); formulaire(); return;
+  }
+  const ez=e.target.closest(".zone-s");
+  if(ez){ const z=zone(ez.id.slice(1));
+    selZone=z.id; sel=null; selLien=null;
+    const p=pos(e);
+    glisse = e.target.classList.contains("poi")
+      ? {z, redim:true, x0:p.x, y0:p.y, w0:z.w, h0:z.h, bouge:0}
+      : {z, dx:p.x-z.x, dy:p.y-z.y, bouge:0};
+    dessine(); formulaire(); return;
+  }
+  glisse={pan:true, sx:e.clientX, sy:e.clientY, vx:vue.x, vy:vue.y, bouge:0};
+  wrap.classList.add("grabbing");
+});
+document.addEventListener("pointermove", e=>{
+  if(tirage){ const p=pos(e); if(tirage.de) tirage.b=p; else tirage.a=p;
+    const c=e.target.closest(".port"); document.querySelectorAll(".port.cible").forEach(x=>x.classList.remove("cible"));
+    if(c) c.classList.add("cible");
+    dessineFils(); return;
+  }
+  if(!glisse) return;
+  if(glisse.pan){
+    glisse.bouge+=Math.abs(e.movementX)+Math.abs(e.movementY);
+    vue.x=glisse.vx+(e.clientX-glisse.sx); vue.y=glisse.vy+(e.clientY-glisse.sy); applique();
+  } else if(glisse.z){
+    const p=pos(e); glisse.bouge+=1; const z=glisse.z;
+    if(glisse.redim){ z.w=Math.max(140,Math.round(glisse.w0+p.x-glisse.x0));
+                      z.h=Math.max(110,Math.round(glisse.h0+p.y-glisse.y0)); }
+    else { z.x=Math.round(p.x-glisse.dx); z.y=Math.round(p.y-glisse.dy); }
+    const el=document.getElementById("Z"+z.id);
+    if(el){ el.style.left=z.x+"px"; el.style.top=z.y+"px"; el.style.width=z.w+"px"; el.style.height=z.h+"px"; }
+  } else {
+    const p=pos(e); glisse.bouge+=1;
+    glisse.b.x=Math.round(p.x-glisse.dx); glisse.b.y=Math.round(p.y-glisse.dy);
+    const el=document.getElementById("B"+glisse.b.id);
+    if(el){ el.style.left=glisse.b.x+"px"; el.style.top=glisse.b.y+"px"; }
+    dessineFils();
+  }
+});
+document.addEventListener("pointerup", e=>{
+  if(tirage){
+    const c=e.target.closest(".port");
+    if(c){
+      const autre={b:c.dataset.b, i:+c.dataset.i, sens:c.dataset.sens};
+      const de = tirage.de || (autre.sens==="s"?{b:autre.b,i:autre.i}:null);
+      const vers = tirage.vers || (autre.sens==="e"?{b:autre.b,i:autre.i}:null);
+      if(de && vers && de.b!==vers.b){
+        const doublon=M.liens.some(l=>l.de.b===de.b&&l.de.i===de.i&&l.vers.b===vers.b&&l.vers.i===vers.i);
+        if(!doublon){ M.liens.push({id:"l"+(++seq), de, vers}); note("acc",`lien ${bloc(de.b).nom} → ${bloc(vers.b).nom}`); }
+      }
+    }
+    tirage=null; wrap.classList.remove("linking");
+    document.querySelectorAll(".port.cible").forEach(x=>x.classList.remove("cible"));
+    dessine(); return;
+  }
+  if(glisse){ if(glisse.pan && glisse.bouge<4){ sel=null; selLien=null; selZone=null; formulaire(); }
+    glisse=null; wrap.classList.remove("grabbing"); dessine(); }
+});
+wrap.addEventListener("wheel", e=>{
+  e.preventDefault();
+  const r=wrap.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
+  const av=vue.z; vue.z=Math.min(2.2,Math.max(.3, vue.z*(e.deltaY<0?1.1:0.9)));
+  vue.x=mx-(mx-vue.x)*(vue.z/av); vue.y=my-(my-vue.y)*(vue.z/av); applique();
+},{passive:false});
+addEventListener("keydown", e=>{
+  if(["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName)) return;
+  if(e.key==="Delete"||e.key==="Backspace"){
+    if(selZone){ M.zones=M.zones.filter(x=>x.id!==selZone); selZone=null; }
+    else if(selLien){ M.liens=M.liens.filter(x=>x.id!==selLien); selLien=null; }
+    else if(sel){ M.liens=M.liens.filter(l=>l.de.b!==sel&&l.vers.b!==sel); M.blocs=M.blocs.filter(b=>b.id!==sel); sel=null; }
+    dessine(); formulaire(); e.preventDefault();
+  }
+});
+
+/* ---- exécution : les jetons avancent de proche en proche ---- */
+let etatsRun={}, file=[], minuteur=null, tourne=false, graine=1;
+function hasard(){ graine=(graine*1103515245+12345)&0x7fffffff; return graine/0x7fffffff; }
+function note(cls, txt){
+  const j=document.getElementById("jrn");
+  j.insertAdjacentHTML("beforeend",`<div class="${cls}">${txt}</div>`); j.scrollTop=j.scrollHeight;
+}
+function prepare(){
+  etatsRun={}; file=[]; graine=1;
+  M.blocs.forEach(b=>etatsRun[b.id]={etat:{}, entrees:{}, sortie:null});
+  M.liens.forEach(l=>{ l.actif=false; l.passe=false; l.jeton=undefined; });
+  document.getElementById("jrn").innerHTML="";
+  const sources=M.blocs.filter(b=>COMP[b.comp].entrees.length===0);
+  if(!sources.length){ note("err","Aucune source : ajoute un bloc « Source » pour amorcer le flux."); return false; }
+  sources.forEach(b=>file.push({bloc:b.id}));
+  note("acc",`▶ ${M.blocs.length} blocs · ${sources.length} source(s)`);
+  return true;
+}
+function unPas(){
+  if(!file.length){
+    note("gris","— plus rien à faire —");
+    const fins=M.blocs.filter(b=>b.comp==="sortie");
+    fins.forEach(b=>{ const r=(etatsRun[b.id].etat.recu||[]);
+      note(r.length?"ok":"gris",`  ${b.nom} : ${r.length?r.join(", "):"rien reçu"}`); });
+    tourne=false; maj(); return false;
+  }
+  M.liens.forEach(l=>{ if(l.actif){ l.actif=false; l.passe=true; } });
+  const lot=file.splice(0, file.length);
+  lot.forEach(({bloc:id})=>{
+    const b=bloc(id); if(!b) return;
+    const c=COMP[b.comp], st=etatsRun[id];
+    const ctx={etat:st.etat, hasard, note:t=>note("gris",`  ${b.nom} · ${t}`)};
+    let sorties={};
+    try{ sorties=c.fn(b.params, st.entrees, ctx)||{}; }
+    catch(err){
+      const s=c.sorties[c.sorties.length-1]||"y";
+      sorties={[s]:{t:"anomalie", v:err.message}};
+      note("err",`  ${b.nom} · ${err.message}`);
+    }
+    const premiere=Object.values(sorties)[0];
+    st.sortie = premiere!==undefined ? premiere : st.sortie;
+    Object.entries(sorties).forEach(([portNom, val])=>{
+      if(val===undefined) return;
+      const i=c.sorties.indexOf(portNom); if(i<0) return;
+      const t=typeDe(val);
+      note(t==="anomalie"?"err":"ok", `  ${b.nom} → ${portNom} : ${aff(val)}${t==="anomalie"?"  ⚠":""}`);
+      M.liens.filter(l=>l.de.b===id && l.de.i===i).forEach(l=>{
+        l.actif=true; l.jeton=val;
+        const cible=bloc(l.vers.b); if(!cible) return;
+        const nomPort=COMP[cible.comp].entrees[l.vers.i];
+        etatsRun[l.vers.b].entrees[nomPort]=val;
+        const attendTout=COMP[cible.comp].attendTout;
+        const prets=COMP[cible.comp].entrees.filter(p=>etatsRun[l.vers.b].entrees[p]!==undefined).length;
+        const assez = attendTout ? prets===COMP[cible.comp].entrees.length : prets>0;
+        if(assez && !file.some(f=>f.bloc===cible.id)) file.push({bloc:cible.id});
+      });
+    });
+  });
+  maj(); return true;
+}
+function maj(){
+  scene.querySelectorAll(".bloc").forEach(el=>el.classList.remove("court"));
+  file.forEach(f=>{ const el=document.getElementById("B"+f.bloc); if(el) el.classList.add("court"); });
+  dessine();
+}
+function boucle(){
+  if(!tourne) return;
+  if(unPas()) minuteur=setTimeout(boucle, 620); else tourne=false;
+}
+document.getElementById("run").onclick=()=>{ if(!prepare()) return; tourne=true; boucle(); };
+document.getElementById("pas").onclick=()=>{ if(!file.length && !tourne){ if(!prepare()) return; } unPas(); };
+document.getElementById("stop").onclick=()=>{ tourne=false; clearTimeout(minuteur); note("gris","— arrêté —"); };
+document.getElementById("vider").onclick=()=>{
+  if(!M.blocs.length || confirm("Effacer tout le montage ?")){ M={blocs:[],liens:[],zones:[]}; sel=null; selLien=null; selZone=null;
+    etatsRun={}; file=[]; document.getElementById("jrn").innerHTML=""; dessine(); formulaire(); } };
+
+/* ---- fichiers ---- */
+function sauve(){ try{ localStorage.setItem("atelier", JSON.stringify({M,seq})); }catch(e){} }
+document.getElementById("exporter").onclick=()=>{
+  const t=JSON.stringify(M,null,1);
+  navigator.clipboard?.writeText(t).then(
+    ()=>note("ok","montage copié dans le presse-papier"),
+    ()=>note("err","copie refusée par le navigateur"));
+};
+document.getElementById("importer").onclick=()=>{
+  const t=prompt("Colle un montage exporté :"); if(!t) return;
+  try{ const o=JSON.parse(t);
+    if(!o.blocs) throw new Error("format inattendu");
+    M=o; M.zones??=[]; seq=M.blocs.length+M.liens.length+(M.zones.length)+1; sel=null; dessine(); formulaire();
+    note("ok",`montage importé : ${M.blocs.length} blocs`);
+  }catch(err){ note("err","import refusé : "+err.message); }
+};
+document.getElementById("vers-blocs").onclick=()=>{
+  const rang={}, deg={};
+  M.blocs.forEach(b=>deg[b.id]=0);
+  M.liens.forEach(l=>deg[l.vers.b]=(deg[l.vers.b]||0)+1);
+  let couche=M.blocs.filter(b=>deg[b.id]===0).map(b=>b.id), n=1, vus=new Set();
+  while(couche.length){
+    couche.forEach(id=>{ rang[id]=n; vus.add(id); });
+    const suiv=new Set();
+    M.liens.filter(l=>couche.includes(l.de.b)).forEach(l=>{ if(!vus.has(l.vers.b)) suiv.add(l.vers.b); });
+    couche=[...suiv]; n++;
+  }
+  M.blocs.forEach(b=>{ if(!rang[b.id]) rang[b.id]=1; });
+  const schema={
+    titre:"Montage de l'atelier", sousTitre:`${M.blocs.length} blocs`,
+    couches:[...new Set(M.blocs.map(b=>COMP[b.comp].nom))].map((nom,i)=>({id:"L"+(i+1), nom})),
+    blocs:M.blocs.map(b=>({id:b.id, code:b.id.toUpperCase(), nom:b.nom,
+      couche:"L"+([...new Set(M.blocs.map(x=>COMP[x.comp].nom))].indexOf(COMP[b.comp].nom)+1),
+      vague:rang[b.id], etat:"ok", etiquette:COMP[b.comp].nom, fichier:"",
+      fiche:{recoit:COMP[b.comp].entrees.map(p=>`port « ${p} »`),
+             produit:COMP[b.comp].sorties.map(p=>`port « ${p} »`),
+             refuse:[COMP[b.comp].aide], manque:"—"}})),
+    aretes:M.liens.map(l=>{
+      const a=rang[l.de.b], z=rang[l.vers.b];
+      const g = z>a ? "f" : (bloc(l.de.b).x===bloc(l.vers.b).x ? "v" : "b");
+      return [l.de.b, l.vers.b, COMP[bloc(l.de.b).comp].sorties[l.de.i]||"", g];
+    })
+  };
+  navigator.clipboard?.writeText(JSON.stringify(schema,null,1)).then(
+    ()=>note("ok","schema.json copié — utilisable par la skill /blocs"),
+    ()=>note("err","copie refusée"));
+};
+document.getElementById("theme").onclick=()=>{
+  const c=document.documentElement.getAttribute("data-theme");
+  const n=c==="dark"?"light":c==="light"?"dark":(matchMedia("(prefers-color-scheme: dark)").matches?"light":"dark");
+  document.documentElement.setAttribute("data-theme",n);
+  try{ localStorage.setItem("atelier-theme",n); }catch(e){}
+};
+try{ const t=localStorage.getItem("atelier-theme"); if(t) document.documentElement.setAttribute("data-theme",t); }catch(e){}
+
+/* ---- exemple : une chaîne validation → réparation → escalade ---- */
+function exemple(){
+  M={blocs:[],liens:[],zones:[]}; seq=0;
+  const s=nouveauBloc("source",60,200);       s.nom="Mesure relevée";    s.params={valeur:"-4", type:"nombre"};
+  const v=nouveauBloc("valider",310,200);     v.nom="Quantité plausible ?"; v.params={cond:"x > 0", motif:"quantité négative"};
+  const r=nouveauBloc("reparer",560,330);     r.nom="Réparation bornée";  r.params={budget:"2", reussite:"60", remis:"12"};
+  const t=nouveauBloc("transformer",840,180); t.nom="Ajouter les pertes"; t.params={expr:"Math.round(x * 1.1)"};
+  const o=nouveauBloc("sortie",1100,180);     o.nom="Devis remis";
+  const e=nouveauBloc("sortie",840,400);      e.nom="Escalade humaine";
+  const L=(a,i,b,j)=>M.liens.push({id:"l"+(++seq), de:{b:a.id,i}, vers:{b:b.id,i:j}});
+  L(s,0,v,0);          // la mesure entre dans la validation
+  L(v,0,t,0);          // acceptée → on ajoute les pertes
+  L(v,1,r,0);          // refusée  → tentative de réparation
+  L(r,0,t,0);          // réparée  → réintégrée au même traitement, sans refaire la validation
+  L(r,1,e,0);          // budget épuisé → l'humain tranche
+  L(t,0,o,0);
+  sel=null; selLien=null; etatsRun={};
+  M.blocs.forEach(b=>etatsRun[b.id]={etat:{},entrees:{},sortie:null});
+  dessine(); formulaire();
+  note("acc","Exemple : une mesure négative est refusée, réparée dans la limite d'un budget, puis réintégrée — sinon escaladée.");
+}
+document.getElementById("exemple").onclick=exemple;
+
+/* ---- démarrage ---- */
+try{
+  const sv=JSON.parse(localStorage.getItem("atelier")||"null");
+  if(sv && sv.M && sv.M.blocs.length){ M=sv.M; seq=sv.seq||M.blocs.length+M.liens.length+1; }
+}catch(e){}
+M.blocs.forEach(b=>etatsRun[b.id]={etat:{},entrees:{},sortie:null});
+if(!M.blocs.length) exemple(); else { dessine(); formulaire(); }
+applique();
+</script>
