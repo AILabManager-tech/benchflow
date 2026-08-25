@@ -36,7 +36,7 @@ sinon un scénario ne voudrait rien dire.
 
 ## Ce qu'il y a dedans
 
-**26 comportements** répartis en six familles :
+**25 comportements** répartis en six familles :
 
 | Famille | Blocs |
 |---|---|
