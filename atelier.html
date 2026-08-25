@@ -5306,9 +5306,73 @@ function charge(){
   return false;
 }
 
+/* ── reprise d'un montage de la version précédente ────────────────────────
+   L'esquisse enregistrait sous la clé « atelier ». Ne rien faire reviendrait à
+   faire disparaître le travail de quelqu'un sans le dire. On convertit donc, et
+   on annonce exactement ce qui a changé — l'ancienne clé n'est jamais effacée. */
+const RENOMMES = { transformer: "fonction" };
+
+function migreV1(v1){
+  const N = montageVide();
+  N.titre = "Montage repris de la version précédente";
+  const notes = [];
+  (v1.blocs || []).forEach(b => {
+    const comp = RENOMMES[b.comp] || b.comp;
+    if (!compDe(comp)){ notes.push(`« ${b.nom} » : comportement « ${b.comp} » disparu — bloc omis.`); return; }
+    const params = Object.assign(defauts(comp), b.params || {});
+    if (b.comp === "transformer") notes.push(`« ${b.nom} » : Transformer s'appelle désormais Fonction.`);
+    if (b.comp === "aiguiller"){
+      /* Une condition unique devient une table de voies d'une ligne. Les deux
+         sorties gardent leur ordre : oui → voie 1, non → autre. */
+      params.voies = (b.params && b.params.cond) || "x > 0";
+      delete params.cond;
+      notes.push(`« ${b.nom} » : Aiguiller prend maintenant une condition par ligne ; « oui/non » devient « voie 1/autre ».`);
+    }
+    N.blocs.push({ id: b.id, comp, nom: b.nom, x: b.x, y: b.y, params });
+  });
+  const vivants = new Set(N.blocs.map(b => b.id));
+  (v1.liens || []).forEach(l => {
+    if (!vivants.has(l.de.b) || !vivants.has(l.vers.b)){
+      notes.push("Un fil a été coupé : il touchait un bloc omis."); return;
+    }
+    N.liens.push({ id: l.id, de: { b: l.de.b, i: l.de.i }, vers: { b: l.vers.b, i: l.vers.i } });
+  });
+  (v1.zones || []).forEach(z => N.zones.push(z));
+  return { M: N, notes };
+}
+
+function tenteMigration(){
+  let brut_;
+  try { brut_ = localStorage.getItem("atelier"); } catch(e){ return false; }
+  if (!brut_) return false;
+  let v1;
+  try { v1 = JSON.parse(brut_); } catch(e){ return false; }
+  const src = v1 && v1.M ? v1.M : v1;
+  if (!src || !Array.isArray(src.blocs) || !src.blocs.length) return false;
+
+  const { M: N, notes } = migreV1(src);
+  M = N; seq = (v1.seq || 0) + 1000;
+  M.blocs.concat(M.liens, M.zones).forEach(x => {
+    const n = parseInt(String(x.id).replace(/^\D+/, ""), 10);
+    if (Number.isFinite(n)) seq = Math.max(seq, n + 1);
+  });
+  setTimeout(() => ouvreBoite("Un montage de la version précédente a été retrouvé",
+    `<p class="vide" style="margin-bottom:11px">Il a été converti : ${M.blocs.length} bloc(s),
+      ${M.liens.length} lien(s). L'ancienne sauvegarde n'a pas été touchée — elle reste
+      là où elle était, sous la clé <span class="mono">atelier</span>.</p>
+     ${notes.length
+       ? `<div class="h2">Ce qui a changé</div>` +
+         [...new Set(notes)].map(t => `<div class="carte warn"><div class="ds">${ech(t)}</div></div>`).join("")
+       : `<div class="carte ok"><div class="tt">✓ Rien n'a bougé</div>
+          <div class="ds">Tous les blocs et tous les fils ont été repris à l'identique.</div></div>`}
+     <p class="vide" style="margin-top:11px">Vérifie le résultat avant de t'y fier : exécute le
+       montage et regarde l'onglet <b>Problèmes</b>.</p>`), 400);
+  return true;
+}
+
 /* ── démarrage ───────────────────────────────────────────────────────────── */
 (function demarre(){
-  const repris = charge();
+  const repris = charge() || tenteMigration();
   if (!repris || !M.blocs.length){
     M = EXEMPLES["Contrôle et réparation"]();
     seq = M.seq || 100;

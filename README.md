@@ -123,6 +123,14 @@ node verifier.mjs --rapide   assertions seulement
 Les mêmes assertions tournent dans la page, onglet **Moteur**. Un seul jeu de tests, deux
 endroits pour le lancer.
 
+## Reprise de l'esquisse
+
+L'esquisse précédente enregistrait son montage sous la clé `atelier`. Au premier
+démarrage, s'il en existe un, il est **converti et chargé**, avec un récapitulatif de ce
+qui a changé (`Transformer` devient `Fonction` ; `Aiguiller` passe d'une condition unique à
+une table de voies, `oui`/`non` devenant `voie 1`/`autre`). L'ancienne sauvegarde n'est
+jamais effacée.
+
 ## Fichiers
 
 ```
