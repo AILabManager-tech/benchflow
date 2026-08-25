@@ -51,7 +51,7 @@ function contrasteJetons(){
   const rap = (a, b) => { const L1 = lum(hex(a)), L2 = lum(hex(b));
     return (Math.max(L1,L2)+.05)/(Math.min(L1,L2)+.05); };
 
-  const FONDS  = ["--surface","--surface-2","--surface-3","--ground"];
+  const FONDS  = ["--surface","--surface-2","--surface-3","--bloc"];
   const APLATS = ["--accent","--ok","--warn","--crit","--abst","--nombre","--texte",
                   "--booleen","--anomalie","--liste","--objet"];
   const ENCRES = ["--ok","--warn","--crit","--accent-ink","--nombre","--texte",
@@ -78,7 +78,23 @@ function contrasteJetons(){
       exige(`${nomTheme} · ${c} en texte sur --surface-2`, T[c], T["--surface-2"], 4.5);
     });
     exige(`${nomTheme} · --accent-ink sur --accent-soft`, T["--accent-ink"], T["--accent-soft"], 4.5);
-    teintes.forEach((t, i) => exige(`${nomTheme} · teinte ${i} en titre sur --ground`, t[iT], T["--ground"], 4.5));
+    /* La pastille de titre d'une section se pose sur le fond des blocs ; sa
+       bordure, elle, se découpe sur le canevas. Deux fonds, deux exigences. */
+    teintes.forEach((t, i) => {
+      exige(`${nomTheme} · teinte ${i} en titre sur --bloc`,   t[iT], T["--bloc"],   4.5);
+      exige(`${nomTheme} · teinte ${i} en bordure sur --ground`, t[iT], T["--ground"], 3);
+    });
+
+    /* ── contraste NON TEXTUEL (WCAG 1.4.11) ────────────────────────────
+       C'est ce qui manquait : mesurer le texte ne dit rien de la lisibilité
+       des OBJETS. Un bloc dont le corps et le bord se confondent avec le
+       canevas est invisible, quelle que soit la qualité de son texte. */
+    exige(`${nomTheme} · bordure du bloc vs canevas`, T["--bloc-bord"], T["--ground"], 3);
+    exige(`${nomTheme} · bordure du bloc vs corps du bloc`, T["--bloc-bord"], T["--bloc"], 1.8);
+    exige(`${nomTheme} · corps du bloc vs canevas`, T["--bloc"], T["--ground"], 1.3);
+    exige(`${nomTheme} · --line-2 vs --surface`, T["--line-2"], T["--surface"], 1.8);
+    exige(`${nomTheme} · grille vs canevas`, T["--grid"], T["--ground"], 1.1);
+    exige(`${nomTheme} · grille forte vs canevas`, T["--grid-fort"], T["--ground"], 1.2);
   }
   return { total, ratés };
 }

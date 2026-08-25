@@ -11,50 +11,67 @@
    Palette sobre, deux thèmes complets, aucune dépendance.
    ═══════════════════════════════════════════════════════════════════ */
 :root{
-  --ground:#EDEFF2; --surface:#FFFFFF; --surface-2:#F6F8FA; --surface-3:#E4E8ED;
-  --ink:#10161D; --ink-2:#3D4A57; --ink-3:#5C6873;
-  --line:#D2D9E0; --line-2:#BCC6D0; --grid:#DDE2E8; --grid-fort:#CFD7DF;
-  --accent:#0E7C86; --accent-soft:#D6EDEF; --accent-ink:#095A62;
+  /* ── surfaces ──────────────────────────────────────────────────────────
+     Le canevas est franchement gris pour que les blocs, eux blancs, s'en
+     détachent. C'est --bloc-bord qui porte la limite visible (3,2:1 contre le
+     canevas), pas l'ombre : un éditeur de graphe où les boîtes se fondent dans
+     le fond ne sert à rien.                                                  */
+  --ground:#D8DEE4; --grid:#C7CFD6; --grid-fort:#B6C0C9;
+  --bloc:#FFFFFF; --bloc-bord:#6E7883;
+  --surface:#FFFFFF; --surface-2:#F4F6F9; --surface-3:#E6EAEF;
+  --line:#D5DBE1; --line-2:#A9B3BD;
+  --ink:#0E141A; --ink-2:#3A4652; --ink-3:#56616C;
   /* Encre à poser SUR un aplat de couleur. Claire ici, sombre en thème sombre :
      sans ça, du blanc sur les aplats vifs du thème sombre tombe à 2 pour 1. */
   --sur-teinte:#FFFFFF;
+  --accent:#0E7C86; --accent-soft:#D6EDEF; --accent-ink:#085158;
   --ok:#2E7D5B; --ok-soft:#DCEFE5;
   --warn:#885E0E; --warn-soft:#F7EBD2;
   --crit:#B33A34; --crit-soft:#F7E0DE;
   --abst:#5A6B7D; --abst-soft:#E3E8ED;
-  --nombre:#4E6FA8; --texte:#7355A0; --booleen:#8A6D3B; --anomalie:#B33A34;
-  --liste:#2A7265; --objet:#9A5B2E; --quelconque:#5C6873;
-  --shadow:0 1px 2px rgba(16,22,29,.06),0 4px 12px rgba(16,22,29,.05);
-  --shadow-fort:0 2px 6px rgba(16,22,29,.10),0 16px 40px rgba(16,22,29,.14);
-  --voile:rgba(16,22,29,.34);
+  --nombre:#4B6BA1; --texte:#7355A0; --booleen:#826637; --anomalie:#B33A34;
+  --liste:#2A7265; --objet:#9A5B2E; --quelconque:#56616C;
+  --shadow:0 1px 1px rgba(14,20,26,.10),0 3px 8px rgba(14,20,26,.10);
+  --shadow-bloc:0 1px 2px rgba(14,20,26,.14),0 6px 16px rgba(14,20,26,.10);
+  --shadow-fort:0 2px 6px rgba(14,20,26,.12),0 18px 44px rgba(14,20,26,.20);
+  --relief:inset 0 1px 0 rgba(255,255,255,.6);
+  --voile:rgba(14,20,26,.40);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --ground:#0B1117; --surface:#131B23; --surface-2:#18222B; --surface-3:#22303B;
-  --ink:#E4E9EE; --ink-2:#A9B6C2; --ink-3:#8B98A4;
-  --line:#25323D; --line-2:#33434F; --grid:#18222B; --grid-fort:#1E2A34;
-  --accent:#35C6D4; --accent-soft:#0E3A40; --accent-ink:#7FDDE7;
+  --ground:#070B0F; --grid:#141B21; --grid-fort:#1E272F;
+  --bloc:#222C34; --bloc-bord:#55626D;
+  --surface:#121920; --surface-2:#1B242B; --surface-3:#27323A;
+  --line:#2E3942; --line-2:#47535E;
+  --ink:#E9EEF3; --ink-2:#B0BCC7; --ink-3:#8E9BA7;
   --sur-teinte:#08131A;
+  --accent:#35C6D4; --accent-soft:#0E3A40; --accent-ink:#7FDDE7;
   --ok:#4BB183; --ok-soft:#12332A; --warn:#D8A33F; --warn-soft:#3A2F14;
-  --crit:#E0645C; --crit-soft:#3B1E1C; --abst:#8497A8; --abst-soft:#1D2833;
-  --nombre:#7FA0DC; --texte:#A98CD8; --booleen:#C4A465; --anomalie:#E0645C;
-  --liste:#5FBFAA; --objet:#D2915C; --quelconque:#7A8996;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
-  --shadow-fort:0 2px 8px rgba(0,0,0,.5),0 18px 44px rgba(0,0,0,.5);
-  --voile:rgba(0,0,0,.55);
+  --crit:#EB7A72; --crit-soft:#3B1E1C; --abst:#8497A8; --abst-soft:#1D2833;
+  --nombre:#7FA0DC; --texte:#A98CD8; --booleen:#C4A465; --anomalie:#EB7A72;
+  --liste:#5FBFAA; --objet:#D2915C; --quelconque:#8E9BA7;
+  --shadow:0 1px 2px rgba(0,0,0,.55),0 4px 14px rgba(0,0,0,.45);
+  --shadow-bloc:0 1px 2px rgba(0,0,0,.6),0 8px 20px rgba(0,0,0,.55);
+  --shadow-fort:0 2px 8px rgba(0,0,0,.6),0 20px 50px rgba(0,0,0,.65);
+  --relief:inset 0 1px 0 rgba(255,255,255,.055);
+  --voile:rgba(0,0,0,.62);
 }}
 :root[data-theme="dark"]{
-  --ground:#0B1117; --surface:#131B23; --surface-2:#18222B; --surface-3:#22303B;
-  --ink:#E4E9EE; --ink-2:#A9B6C2; --ink-3:#8B98A4;
-  --line:#25323D; --line-2:#33434F; --grid:#18222B; --grid-fort:#1E2A34;
-  --accent:#35C6D4; --accent-soft:#0E3A40; --accent-ink:#7FDDE7;
+  --ground:#070B0F; --grid:#141B21; --grid-fort:#1E272F;
+  --bloc:#222C34; --bloc-bord:#55626D;
+  --surface:#121920; --surface-2:#1B242B; --surface-3:#27323A;
+  --line:#2E3942; --line-2:#47535E;
+  --ink:#E9EEF3; --ink-2:#B0BCC7; --ink-3:#8E9BA7;
   --sur-teinte:#08131A;
+  --accent:#35C6D4; --accent-soft:#0E3A40; --accent-ink:#7FDDE7;
   --ok:#4BB183; --ok-soft:#12332A; --warn:#D8A33F; --warn-soft:#3A2F14;
-  --crit:#E0645C; --crit-soft:#3B1E1C; --abst:#8497A8; --abst-soft:#1D2833;
-  --nombre:#7FA0DC; --texte:#A98CD8; --booleen:#C4A465; --anomalie:#E0645C;
-  --liste:#5FBFAA; --objet:#D2915C; --quelconque:#7A8996;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
-  --shadow-fort:0 2px 8px rgba(0,0,0,.5),0 18px 44px rgba(0,0,0,.5);
-  --voile:rgba(0,0,0,.55);
+  --crit:#EB7A72; --crit-soft:#3B1E1C; --abst:#8497A8; --abst-soft:#1D2833;
+  --nombre:#7FA0DC; --texte:#A98CD8; --booleen:#C4A465; --anomalie:#EB7A72;
+  --liste:#5FBFAA; --objet:#D2915C; --quelconque:#8E9BA7;
+  --shadow:0 1px 2px rgba(0,0,0,.55),0 4px 14px rgba(0,0,0,.45);
+  --shadow-bloc:0 1px 2px rgba(0,0,0,.6),0 8px 20px rgba(0,0,0,.55);
+  --shadow-fort:0 2px 8px rgba(0,0,0,.6),0 20px 50px rgba(0,0,0,.65);
+  --relief:inset 0 1px 0 rgba(255,255,255,.055);
+  --voile:rgba(0,0,0,.62);
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -95,7 +112,7 @@ button{cursor:pointer; background:none; border:0; padding:0}
 /* ── charpente ───────────────────────────────────────────── */
 .app{display:grid; grid-template-rows:auto 1fr; height:100%}
 .bar{display:flex; align-items:center; gap:7px; padding:8px 12px; background:var(--surface);
-  border-bottom:1px solid var(--line); z-index:20; box-shadow:0 1px 0 rgba(0,0,0,.02)}
+  border-bottom:1px solid var(--bloc-bord); z-index:20}
 .bar .sep{width:1px; height:20px; background:var(--line); margin:0 3px}
 .marque{display:flex; align-items:center; gap:8px; padding-right:4px}
 .marque .logo{width:22px; height:22px; border-radius:5px; background:var(--accent);
@@ -105,12 +122,12 @@ button{cursor:pointer; background:none; border:0; padding:0}
 
 .main{display:grid; grid-template-columns:236px minmax(0,1fr) 336px;
   grid-template-rows:minmax(0,1fr) auto auto; overflow:hidden; min-height:0}
-.col-g{grid-column:1; grid-row:1/4; background:var(--surface); border-right:1px solid var(--line);
+.col-g{grid-column:1; grid-row:1/4; background:var(--surface); border-right:1px solid var(--bloc-bord);
   overflow:hidden; display:flex; flex-direction:column; min-height:0}
-.col-d{grid-column:3; grid-row:1/4; background:var(--surface); border-left:1px solid var(--line);
+.col-d{grid-column:3; grid-row:1/4; background:var(--surface); border-left:1px solid var(--bloc-bord);
   overflow:hidden; display:flex; flex-direction:column; min-height:0}
 .zone-canevas{grid-column:2; grid-row:1; position:relative; overflow:hidden; min-height:0}
-.tiroir{grid-column:2; grid-row:3; border-top:1px solid var(--line); background:var(--surface);
+.tiroir{grid-column:2; grid-row:3; border-top:1px solid var(--bloc-bord); background:var(--surface);
   display:flex; flex-direction:column; min-height:0; overflow:hidden}
 .tiroir.replie{height:33px !important}
 .tiroir.replie .tiroir-corps{display:none}
@@ -157,10 +174,9 @@ button{cursor:pointer; background:none; border:0; padding:0}
 /* ── canevas ─────────────────────────────────────────────── */
 .wrap{position:absolute; inset:0; overflow:hidden; cursor:grab;
   background:
-    linear-gradient(var(--grid-fort) 1px,transparent 1px) 0 0/120px 120px,
-    linear-gradient(90deg,var(--grid-fort) 1px,transparent 1px) 0 0/120px 120px,
-    linear-gradient(var(--grid) 1px,transparent 1px) 0 0/24px 24px,
-    linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/24px 24px,
+    linear-gradient(var(--grid-fort) 1.5px,transparent 1.5px) 0 0/120px 120px,
+    linear-gradient(90deg,var(--grid-fort) 1.5px,transparent 1.5px) 0 0/120px 120px,
+    radial-gradient(var(--grid) 1.2px, transparent 1.2px) 0 0/24px 24px,
     var(--ground)}
 .wrap.grabbing{cursor:grabbing}
 .wrap.linking{cursor:crosshair}
@@ -170,8 +186,8 @@ button{cursor:pointer; background:none; border:0; padding:0}
   overflow:visible; pointer-events:none}
 #fils > g{transform:translate(4000px,3000px)}
 
-.fil{fill:none; stroke:var(--ink-3); stroke-width:2.2; stroke-linejoin:round; stroke-linecap:round}
-.fil.passe{stroke:var(--accent); opacity:.55}
+.fil{fill:none; stroke:var(--ink-3); stroke-width:2.4; stroke-linejoin:round; stroke-linecap:round}
+.fil.passe{stroke:var(--accent); opacity:.85}
 .fil.sel{stroke:var(--crit); stroke-width:3.4}
 .fil.mise{stroke:var(--accent); stroke-width:3}
 .fil.zone{stroke:transparent; stroke-width:16; pointer-events:stroke; cursor:pointer}
@@ -181,24 +197,32 @@ button{cursor:pointer; background:none; border:0; padding:0}
   paint-order:stroke; stroke:var(--ground); stroke-width:4px; stroke-linejoin:round}
 .jeton-vol{paint-order:stroke; stroke:var(--ground); stroke-width:3.5px; stroke-linejoin:round}
 .jeton-txt{font-family:"IBM Plex Mono",monospace; font-size:10px; font-weight:700;
-  paint-order:stroke; stroke:var(--ground); stroke-width:4px; stroke-linejoin:round}
+  paint-order:stroke; stroke:var(--ground); stroke-width:5px; stroke-linejoin:round}
 
-.bloc{position:absolute; width:184px; background:var(--surface); border:1.5px solid var(--line-2);
-  border-left-width:5px; border-radius:6px; box-shadow:var(--shadow); padding:7px 9px 8px;
-  cursor:move; user-select:none; transition:box-shadow .12s}
-.bloc.sel{border-color:var(--accent); box-shadow:var(--shadow),0 0 0 2.5px var(--accent-soft)}
-.bloc.court{box-shadow:var(--shadow),0 0 0 3px var(--accent-soft)}
+.bloc{position:absolute; width:196px; background:var(--bloc);
+  border:1.5px solid var(--bloc-bord); border-left-width:6px; border-radius:7px;
+  box-shadow:var(--shadow-bloc),var(--relief); padding:7px 9px 8px;
+  cursor:move; user-select:none; transition:box-shadow .12s,border-color .12s}
+.bloc:hover{border-color:var(--ink-3)}
+.bloc.sel{border-color:var(--accent);
+  box-shadow:var(--shadow-bloc),var(--relief),0 0 0 3px var(--accent-soft)}
+.bloc.court{border-color:var(--accent);
+  box-shadow:var(--shadow-bloc),var(--relief),0 0 0 4px var(--accent-soft)}
 .bloc.enpanne{border-color:var(--crit)}
 .bloc.attente{opacity:.98; border-style:dashed}
-.bloc .tt{display:flex; align-items:center; gap:5px; min-height:13px}
+.bloc .tt{display:flex; align-items:center; gap:5px; min-height:14px;
+  padding-bottom:5px; border-bottom:1px solid var(--line); margin-bottom:5px}
+.bloc .jalon{width:7px; height:7px; border-radius:2px; flex:none}
 .bloc .cmp{font-family:"IBM Plex Mono",monospace; font-size:8.5px; font-weight:700;
-  letter-spacing:.07em; text-transform:uppercase}
-.bloc .nm{font-size:12.5px; font-weight:600; margin-top:1px; line-height:1.25;
+  letter-spacing:.09em; text-transform:uppercase}
+.bloc .nm{font-size:13px; font-weight:600; line-height:1.3; color:var(--ink);
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .bloc .val{font-family:"IBM Plex Mono",monospace; font-size:10.5px; margin-top:5px;
-  background:var(--surface-2); border-radius:3px; padding:2px 6px; min-height:17px;
+  background:var(--surface-2); border:1px solid var(--line); border-radius:4px;
+  padding:1px 6px; min-height:18px; line-height:16px;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink-2)}
 .bloc .pastille{margin-left:auto; width:8px; height:8px; border-radius:50%; background:var(--line-2); flex:none}
+.bloc.sel .pastille{background:var(--accent)}
 .bloc.court .pastille{background:none; border:2px solid var(--accent-soft);
   border-top-color:var(--accent); animation:tourne .62s linear infinite}
 .bloc .file-n{position:absolute; top:-8px; right:-8px; min-width:18px; height:18px; padding:0 5px;
@@ -210,20 +234,26 @@ button{cursor:pointer; background:none; border:0; padding:0}
 @keyframes tourne{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.bloc.court .pastille{animation:none;background:var(--accent);border:0}}
 
-.port{position:absolute; width:12px; height:12px; border-radius:50%; background:var(--surface);
-  border:2.5px solid var(--line-2); cursor:crosshair; z-index:3; transition:transform .1s}
+.port{position:absolute; width:13px; height:13px; border-radius:50%; background:var(--bloc);
+  border:2.5px solid var(--bloc-bord); cursor:crosshair; z-index:3; transition:transform .1s}
 .port:hover,.port.cible{border-color:var(--accent); background:var(--accent-soft); transform:scale(1.35)}
-.port.lie{background:var(--line-2)}
+.port.lie{background:var(--ink-3); border-color:var(--ink-3)}
 .port.e{left:-7.5px} .port.s{right:-7.5px}
+/* Ces étiquettes flottent hors du bloc, donc sur le canevas, sur une section
+   teintée ou sur un fil. Une pastille leur donne un fond connu : sans elle,
+   leur lisibilité dépendait de ce qui passait dessous. */
 .port .etq{position:absolute; font-size:9px; font-family:"IBM Plex Mono",monospace;
-  color:var(--ink-3); white-space:nowrap; top:-2px; pointer-events:none; font-weight:600}
-.port.s .etq{left:16px} .port.e .etq{right:16px}
+  color:var(--ink-3); white-space:nowrap; top:-3px; pointer-events:none; font-weight:600;
+  background:var(--bloc); border:1px solid var(--line); border-radius:3px; padding:0 4px;
+  line-height:15px}
+.port.s .etq{left:15px} .port.e .etq{right:15px}
 #scene.muet .port .etq{display:none}
 
-.zone-s{position:absolute; border:1.5px solid; border-radius:10px; z-index:0; cursor:move}
-.zone-s.sel{outline:2px solid var(--accent); outline-offset:2px}
-.zone-s > .ti{position:absolute; top:-10px; left:12px; background:var(--ground); padding:1px 8px;
-  border-radius:3px; font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+.zone-s{position:absolute; border:2px solid; border-radius:12px; z-index:0; cursor:move}
+.zone-s.sel{outline:2px solid var(--accent); outline-offset:3px}
+.zone-s > .ti{position:absolute; top:-11px; left:14px; background:var(--bloc);
+  border:1.5px solid currentColor; padding:1px 9px;
+  border-radius:11px; font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
   white-space:nowrap; user-select:none}
 .zone-s > .poi{position:absolute; right:-6px; bottom:-6px; width:14px; height:14px; border-radius:3px;
   background:var(--surface); border:2px solid currentColor; cursor:nwse-resize}
@@ -232,8 +262,8 @@ button{cursor:pointer; background:none; border:0; padding:0}
   opacity:.45; z-index:9; pointer-events:none; border-radius:3px}
 
 /* ── flottants du canevas ────────────────────────────────── */
-.flot{position:absolute; z-index:12; background:var(--surface); border:1px solid var(--line);
-  border-radius:9px; box-shadow:var(--shadow-fort)}
+.flot{position:absolute; z-index:12; background:var(--surface); border:1px solid var(--bloc-bord);
+  border-radius:10px; box-shadow:var(--shadow-fort)}
 .transport{left:50%; transform:translateX(-50%); bottom:14px; display:flex; align-items:center;
   gap:8px; padding:7px 11px}
 .transport .rond{width:30px; height:30px; border-radius:50%; display:grid; place-items:center;
@@ -3524,14 +3554,14 @@ let vueRun = { vals: {}, liens: {}, files: {}, actifs: [] };
 let lecture = { i: 0, joue: false, minuteur: null };
 let presse = null;            // presse-papier interne
 
-const P_BLOC = { w: 184 };
+const P_BLOC = { w: 196 };
 function hauteurBloc(b){
   const n = Math.max(portsDe(b.comp, b.params, "e").length, portsDe(b.comp, b.params, "s").length, 1);
-  return Math.max(74, 34 + n * 19);
+  return Math.max(82, 40 + n * 20);
 }
 function posPort(b, sens, i){
   const l = portsDe(b.comp, b.params, sens), n = l.length || 1, h = hauteurBloc(b);
-  return { x: b.x + (sens === "s" ? P_BLOC.w : 0), y: b.y + 26 + (i + 1) * (h - 22) / (n + 1) };
+  return { x: b.x + (sens === "s" ? P_BLOC.w : 0), y: b.y + 30 + (i + 1) * (h - 30) / (n + 1) };
 }
 const bloc = id => M.blocs.find(b => b.id === id);
 const zone = id => (M.zones || []).find(z => z.id === id);
@@ -3614,7 +3644,7 @@ function dessine(){
     const el = document.createElement("div");
     el.className = "zone-s" + (selZone === z.id ? " sel" : ""); el.id = "Z" + z.id;
     el.style.cssText = `left:${z.x}px; top:${z.y}px; width:${z.w}px; height:${z.h}px;
-      border-color:${c}66; background:${c}12; color:${c};`;
+      border-color:${c}99; background:${c}1F; color:${c};`;
     el.innerHTML = `<span class="ti" style="color:${c}">${ech(z.nom)}</span><span class="poi"></span>`;
     scene.appendChild(el);
   });
@@ -3642,7 +3672,8 @@ function dessine(){
 function corpsBloc(b, c){
   const v = vueRun.vals[b.id];
   const t = v ? typeDe(v) : null;
-  return `<div class="tt"><span class="cmp" style="color:${c.coul}">${ech(c.nom)}</span>
+  return `<div class="tt"><span class="jalon" style="background:${c.coul}"></span>
+      <span class="cmp" style="color:${c.coul}">${ech(c.nom)}</span>
       <span class="pastille"></span></div>
     <div class="nm" title="${ech(b.nom)}">${ech(b.nom)}</div>
     <div class="val ${t ? "c-" + t : ""}">${v ? ech(aff(v)) : "—"}</div>`;

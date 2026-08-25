@@ -114,7 +114,7 @@ Le fichier est coupé en deux moitiés par les marqueurs `@noyau:debut` / `@noya
 touche jamais au DOM. Il tourne donc tel quel hors du navigateur :
 
 ```
-node verifier.mjs        211 assertions · 100 paires de couleurs au-dessus du
+node verifier.mjs        211 assertions · 124 paires de couleurs au-dessus du
                          seuil de contraste · engendre et exécute les 4 exemples
                          en JavaScript et en Python
 node verifier.mjs -v     détail de chaque assertion
@@ -122,9 +122,12 @@ node verifier.mjs --rapide   assertions seulement
 ```
 
 Le contrôle de contraste lit les couleurs **dans la feuille de style elle-même** et vérifie
-chaque paire texte/fond des deux thèmes contre le seuil WCAG AA de 4,5:1. Un seul jeton mal
-réglé suffit à faire passer vingt textes sous le seuil sans que rien ne l'annonce : c'est
-arrivé, d'où ce garde-fou.
+124 paires des deux thèmes : le texte contre son fond (seuil AA, 4,5:1) **et les surfaces
+entre elles** (seuil 1.4.11, 3:1) — bordure d'un bloc contre le canevas, corps du bloc
+contre le canevas, trait contre panneau. Les deux axes sont nécessaires : la première
+version passait le contrôle du texte pendant que les blocs se fondaient dans le fond à
+1,09:1. Un seul jeton mal réglé suffit à faire basculer vingt textes sous le seuil sans que
+rien ne l'annonce.
 
 Les mêmes assertions tournent dans la page, onglet **Moteur**. Un seul jeu de tests, deux
 endroits pour le lancer.
