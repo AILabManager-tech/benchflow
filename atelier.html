@@ -3329,6 +3329,18 @@ function lancerTests(){
   ok("le fichier engendré s'annonce", /Atelier de blocs/.test(srcJS));
   ok("les fonctions du catalogue y sont bien présentes", /"fusionner"/.test(srcJS) && /mode de combinaison inconnu/.test(srcJS));
 
+  const Mpy = montageVide();
+  Mpy.forges = [{ id:"f:py", nom:"Sur mesure", ic:"P", entrees:["x"], sorties:["y"],
+                  params:[], corps:"return { y: x };", lat:5 }];
+  chargeForges(Mpy.forges);
+  Mpy.blocs = [{ id:"y1", comp:"f:py", nom:"Sur mesure", x:0, y:0, params:{} }];
+  const pyForge = engendrePython(Mpy);
+  ok("un bloc forgé traduit en Python dit franchement pourquoi il ne l'est pas",
+     /est un bloc forgé/.test(pyForge) && /non traduit en Python/.test(pyForge));
+  ok("… sans laisser une clé de paramètre inexistante derrière lui",
+     !/_corps_forge/.test(pyForge));
+  chargeForges([]);
+
   const srcPY = engendrePython(Msimple);
   ok("le Python engendré définit une fonction par bloc", (srcPY.match(/^def bloc_/gm) || []).length === 3);
   ok("il embarque son moteur de flux", /def executer\(graine=1\)/.test(srcPY));

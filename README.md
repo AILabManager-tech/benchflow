@@ -114,7 +114,7 @@ Le fichier est coupé en deux moitiés par les marqueurs `@noyau:debut` / `@noya
 touche jamais au DOM. Il tourne donc tel quel hors du navigateur :
 
 ```
-node verifier.mjs        209 assertions, puis engendre et exécute
+node verifier.mjs        211 assertions, puis engendre et exécute
                          les 4 exemples en JavaScript et en Python
 node verifier.mjs -v     détail de chaque assertion
 node verifier.mjs --rapide   assertions seulement
@@ -122,6 +122,16 @@ node verifier.mjs --rapide   assertions seulement
 
 Les mêmes assertions tournent dans la page, onglet **Moteur**. Un seul jeu de tests, deux
 endroits pour le lancer.
+
+```
+node mutation.mjs        casse chaque correctif un par un et exige
+                         que la suite devienne rouge
+```
+
+Une suite verte ne prouve rien tant qu'on n'a pas vérifié qu'elle sait devenir rouge. Le
+banc de mutation remet le code fautif d'origine à la place de chaque correctif et refuse
+de passer si les assertions restent vertes. Il a trouvé, à son premier essai, un correctif
+qu'aucune assertion ne couvrait.
 
 Un groupe d'assertions porte le nom **« Aucun repli silencieux »** : il tient en respect les
 chemins par lesquels une valeur pourrait disparaître sans un mot — fil vers un bloc absent,
@@ -154,5 +164,6 @@ jamais effacée.
 ```
 atelier.html    l'application entière — noyau (§0-§11) puis interface (§12-§22)
 verifier.mjs    lance les auto-tests du noyau sous Node, hors navigateur
+mutation.mjs    vérifie que ces auto-tests savent devenir rouges
 README.md       ce fichier
 ```
