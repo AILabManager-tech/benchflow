@@ -16,11 +16,11 @@
      détachent. C'est --bloc-bord qui porte la limite visible (3,2:1 contre le
      canevas), pas l'ombre : un éditeur de graphe où les boîtes se fondent dans
      le fond ne sert à rien.                                                  */
-  --ground:#D8DEE4; --grid:#C7CFD6; --grid-fort:#B6C0C9;
-  --bloc:#FFFFFF; --bloc-bord:#6E7883;
-  --surface:#FFFFFF; --surface-2:#F4F6F9; --surface-3:#E6EAEF;
-  --line:#D5DBE1; --line-2:#A9B3BD;
-  --ink:#0E141A; --ink-2:#3A4652; --ink-3:#56616C;
+  --ground:#BEC5CC; --grid:#A6ADB4; --grid-fort:#8E949B;
+  --bloc:#FFFFFF; --bloc-bord:#4D5258;
+  --surface:#FFFFFF; --surface-2:#F2F5F8; --surface-3:#E2E7EC;
+  --line:#CDD4DB; --line-2:#96A0AA;
+  --ink:#0A0F14; --ink-2:#333E49; --ink-3:#525C66;
   /* Encre à poser SUR un aplat de couleur. Claire ici, sombre en thème sombre :
      sans ça, du blanc sur les aplats vifs du thème sombre tombe à 2 pour 1. */
   --sur-teinte:#FFFFFF;
@@ -38,17 +38,17 @@
   --voile:rgba(14,20,26,.40);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --ground:#070B0F; --grid:#141B21; --grid-fort:#1E272F;
-  --bloc:#222C34; --bloc-bord:#55626D;
-  --surface:#121920; --surface-2:#1B242B; --surface-3:#27323A;
-  --line:#2E3942; --line-2:#47535E;
-  --ink:#E9EEF3; --ink-2:#B0BCC7; --ink-3:#8E9BA7;
+  --ground:#05080B; --grid:#20252A; --grid-fort:#343A40;
+  --bloc:#343A40; --bloc-bord:#6E7982;
+  --surface:#1B2024; --surface-2:#2C3237; --surface-3:#3A4147;
+  --line:#3F464D; --line-2:#5A636B;
+  --ink:#EDF2F6; --ink-2:#C7D0D8; --ink-3:#A6B1BA;
   --sur-teinte:#08131A;
-  --accent:#35C6D4; --accent-soft:#0E3A40; --accent-ink:#7FDDE7;
-  --ok:#4BB183; --ok-soft:#12332A; --warn:#D8A33F; --warn-soft:#3A2F14;
-  --crit:#EB7A72; --crit-soft:#3B1E1C; --abst:#8497A8; --abst-soft:#1D2833;
-  --nombre:#7FA0DC; --texte:#A98CD8; --booleen:#C4A465; --anomalie:#EB7A72;
-  --liste:#5FBFAA; --objet:#D2915C; --quelconque:#8E9BA7;
+  --accent:#35C6D4; --accent-soft:#12414A; --accent-ink:#7FDDE7;
+  --ok:#7AC6A4; --ok-soft:#183A2F; --warn:#DDB059; --warn-soft:#3E331A;
+  --crit:#F1A29C; --crit-soft:#412422; --abst:#9FB0BE; --abst-soft:#242D34;
+  --nombre:#9EB7E5; --texte:#C1ADE3; --booleen:#CEB37E; --anomalie:#F1A29C;
+  --liste:#70C6B3; --objet:#DDAD85; --quelconque:#A6B1BA;
   --shadow:0 1px 2px rgba(0,0,0,.55),0 4px 14px rgba(0,0,0,.45);
   --shadow-bloc:0 1px 2px rgba(0,0,0,.6),0 8px 20px rgba(0,0,0,.55);
   --shadow-fort:0 2px 8px rgba(0,0,0,.6),0 20px 50px rgba(0,0,0,.65);
@@ -56,17 +56,17 @@
   --voile:rgba(0,0,0,.62);
 }}
 :root[data-theme="dark"]{
-  --ground:#070B0F; --grid:#141B21; --grid-fort:#1E272F;
-  --bloc:#222C34; --bloc-bord:#55626D;
-  --surface:#121920; --surface-2:#1B242B; --surface-3:#27323A;
-  --line:#2E3942; --line-2:#47535E;
-  --ink:#E9EEF3; --ink-2:#B0BCC7; --ink-3:#8E9BA7;
+  --ground:#05080B; --grid:#20252A; --grid-fort:#343A40;
+  --bloc:#343A40; --bloc-bord:#6E7982;
+  --surface:#1B2024; --surface-2:#2C3237; --surface-3:#3A4147;
+  --line:#3F464D; --line-2:#5A636B;
+  --ink:#EDF2F6; --ink-2:#C7D0D8; --ink-3:#A6B1BA;
   --sur-teinte:#08131A;
-  --accent:#35C6D4; --accent-soft:#0E3A40; --accent-ink:#7FDDE7;
-  --ok:#4BB183; --ok-soft:#12332A; --warn:#D8A33F; --warn-soft:#3A2F14;
-  --crit:#EB7A72; --crit-soft:#3B1E1C; --abst:#8497A8; --abst-soft:#1D2833;
-  --nombre:#7FA0DC; --texte:#A98CD8; --booleen:#C4A465; --anomalie:#EB7A72;
-  --liste:#5FBFAA; --objet:#D2915C; --quelconque:#8E9BA7;
+  --accent:#35C6D4; --accent-soft:#12414A; --accent-ink:#7FDDE7;
+  --ok:#7AC6A4; --ok-soft:#183A2F; --warn:#DDB059; --warn-soft:#3E331A;
+  --crit:#F1A29C; --crit-soft:#412422; --abst:#9FB0BE; --abst-soft:#242D34;
+  --nombre:#9EB7E5; --texte:#C1ADE3; --booleen:#CEB37E; --anomalie:#F1A29C;
+  --liste:#70C6B3; --objet:#DDAD85; --quelconque:#A6B1BA;
   --shadow:0 1px 2px rgba(0,0,0,.55),0 4px 14px rgba(0,0,0,.45);
   --shadow-bloc:0 1px 2px rgba(0,0,0,.6),0 8px 20px rgba(0,0,0,.55);
   --shadow-fort:0 2px 8px rgba(0,0,0,.6),0 20px 50px rgba(0,0,0,.65);
@@ -200,7 +200,7 @@ button{cursor:pointer; background:none; border:0; padding:0}
   paint-order:stroke; stroke:var(--ground); stroke-width:5px; stroke-linejoin:round}
 
 .bloc{position:absolute; width:196px; background:var(--bloc);
-  border:1.5px solid var(--bloc-bord); border-left-width:6px; border-radius:7px;
+  border:2px solid var(--bloc-bord); border-left-width:7px; border-radius:7px;
   box-shadow:var(--shadow-bloc),var(--relief); padding:7px 9px 8px;
   cursor:move; user-select:none; transition:box-shadow .12s,border-color .12s}
 .bloc:hover{border-color:var(--ink-3)}
@@ -209,6 +209,7 @@ button{cursor:pointer; background:none; border:0; padding:0}
 .bloc.court{border-color:var(--accent);
   box-shadow:var(--shadow-bloc),var(--relief),0 0 0 4px var(--accent-soft)}
 .bloc.enpanne{border-color:var(--crit)}
+.bloc.dans-section{box-shadow:var(--shadow-bloc),var(--relief),0 0 0 2px var(--accent-soft)}
 .bloc.attente{opacity:.98; border-style:dashed}
 .bloc .tt{display:flex; align-items:center; gap:5px; min-height:14px;
   padding-bottom:5px; border-bottom:1px solid var(--line); margin-bottom:5px}
@@ -248,6 +249,12 @@ button{cursor:pointer; background:none; border:0; padding:0}
   line-height:15px}
 .port.s .etq{left:15px} .port.e .etq{right:15px}
 #scene.muet .port .etq{display:none}
+/* Une entrée déjà reliée n'a pas besoin de dire son nom : le fil qui y arrive
+   le dit. Sans cette règle, l'étiquette de la sortie de gauche et celle de
+   l'entrée de droite se télescopent dans le même intervalle. Une entrée SANS
+   fil, elle, garde son nom — c'est justement ce qu'il faut remarquer. */
+.port.e.lie .etq{display:none}
+.bloc:hover .port .etq,.bloc.sel .port .etq{display:block}
 
 .zone-s{position:absolute; border:2px solid; border-radius:12px; z-index:0; cursor:move}
 .zone-s.sel{outline:2px solid var(--accent); outline-offset:3px}
@@ -1610,7 +1617,7 @@ function compDe(comp){
 const VERSION_FORMAT = 2;
 
 function montageVide(){
-  return { version: VERSION_FORMAT, titre: "Montage sans titre",
+  return { version: VERSION_FORMAT, titre: "Montage sans titre", etage: 0,
            blocs: [], liens: [], zones: [], forges: [], scenarios: [] };
 }
 
@@ -1685,6 +1692,36 @@ function indicePort(bloc, sens, ref){
   }
   return (ref && ref.i < l.length) ? ref.i : -1;
 }
+
+/* Géométrie d'un bloc. Elle vit dans le noyau parce qu'elle décide de
+   l'appartenance à une section — donc du comportement, pas seulement du
+   dessin. */
+const P_BLOC = { w: 196 };
+function hauteurBloc(b){
+  const n = Math.max(portsDe(b.comp, b.params, "e").length, portsDe(b.comp, b.params, "s").length, 1);
+  return Math.max(82, 40 + n * 20);
+}
+
+/** À quelle section appartient un bloc.
+ *
+ *  La règle : son CENTRE est dans l'encadré. Pas « entièrement contenu » —
+ *  c'était la règle d'avant, et elle rendait l'appartenance imprévisible : un
+ *  bloc qui dépassait d'un pixel cessait de suivre son encadré sans que rien ne
+ *  l'indique. Le centre est franc, se juge à l'œil, et se décide pareil qu'on
+ *  déplace ou qu'on colore.
+ *
+ *  Si plusieurs encadrés se recouvrent, le plus petit gagne : c'est le plus
+ *  spécifique, et ça garantit une appartenance unique. */
+function sectionDuBloc(M, b){
+  const cx = b.x + P_BLOC.w / 2, cy = b.y + hauteurBloc(b) / 2;
+  const dedans = (M.zones || []).filter(z =>
+    cx >= z.x && cx <= z.x + z.w && cy >= z.y && cy <= z.y + z.h);
+  if (!dedans.length) return null;
+  return dedans.slice().sort((a, z) => (a.w * a.h) - (z.w * z.h))[0];
+}
+const blocsDeSection = (M, z) => M.blocs.filter(b => {
+  const s = sectionDuBloc(M, b); return s && s.id === z.id;
+});
 
 /** Ordre topologique en vagues : la vague d'un bloc est 1 + la plus grande
  *  vague de ses prédécesseurs. Les cycles sont coupés (le bloc reste à sa
@@ -2889,6 +2926,43 @@ function monte(titre, blocs, liens, zones, scenarios){
 
 const EXEMPLES = {
 
+/* L'exemple d'accueil. Une chaîne d'intégration continue : tout développeur en
+   a une, et elle met en jeu exactement ce que l'atelier sait modéliser — une
+   validation qui refuse, des tests instables, une reprise bornée, un
+   disjoncteur qui finit par arrêter d'insister, un déploiement qui ne se fait
+   qu'un à la fois, et deux issues honnêtes : en production, ou retour arrière. */
+"Chaîne d'intégration continue": () => monte("Chaîne d'intégration continue",
+  [["generateur",  "Commits poussés",           80, 170, { loi:"suite", n:"8", a:"1", b:"1", cadence:"400" }],
+   ["valider",     "Le code compile",          320, 170, { cond:"x % 5 !== 0", motif:"compilation échouée" }],
+   ["panne",       "Suite de tests",           560, 170, { taux:"30", motif:"test instable" }],
+   ["disjoncteur", "Trop d'échecs d'affilée",  560, 430, { seuil:"3", repos:"2000" }],
+   ["reparer",     "Relancer le job",          800, 430, { budget:"2", reussite:"70", usure:"15",
+                                                           attente:"300", remis:"1" }],
+   ["limiteur",    "Un déploiement à la fois",1040, 170, { parSeconde:"1" }],
+   ["attendre",    "Déploiement",             1280, 170, { duree:"800", _cap:"1" }],
+   ["assertion",   "Service en bonne santé",  1520, 170, { cond:"x > 0", nom:"le service répond" }],
+   ["sortie",      "En production",           1760, 170],
+   ["rebut",       "Retour arrière",          1040, 430]],
+  [[0,"valeur",1,"x"],
+   [1,"ok",2,"x"], [1,"refus",9,"x"],
+   [2,"x",5,"x"],  [2,"panne",3,"x"],
+   [3,"passé",5,"x"], [3,"coupé",4,"anomalie"],
+   [4,"réparé",5,"x"], [4,"épuisé",9,"x"],
+   [5,"x",6,"x"], [6,"x",7,"x"], [7,"x",8,"x"]],
+  [["Intégration",   40, 110,  500, 190, 0],
+   ["Vérification", 540, 110,  460, 450, 2],
+   ["Livraison",   1020, 110,  960, 190, 4],
+   ["Incidents",   1020, 370,  240, 190, 3]],
+  [{ nom: "Le commit qui ne compile pas est le seul à repartir en arrière", graine: 1,
+     attentes: [{ sujet:"compte", cible:"b9",  op:"=", valeur:"7" },
+                { sujet:"compte", cible:"b10", op:"=", valeur:"1" }] },
+   { nom: "Les tests instables sont absorbés par la reprise, pas subis", graine: 3,
+     attentes: [{ sujet:"anomalies", op:"≥", valeur:"1" },
+                { sujet:"compte", cible:"b9", op:"=", valeur:"7" },
+                { sujet:"assertions", op:"=", valeur:"oui" }] },
+   { nom: "Un seul déploiement à la fois : la chaîne dure plus de 6 secondes", graine: 1,
+     attentes: [{ sujet:"duree", op:"≥", valeur:"6000" }] }]),
+
 "Contrôle et réparation": () => monte("Contrôle et réparation",
   [["source",      "Mesure relevée",        80, 210, { valeur: "-4", type: "nombre" }],
    ["valider",     "Quantité plausible ?", 350, 210, { cond: "x > 0", motif: "quantité négative" }],
@@ -3395,6 +3469,29 @@ function lancerTests(){
   ok("chaque bloc a une vague", sch.blocs.every(b => b.vague >= 1));
   ok("le Mermaid se tient", /flowchart LR/.test(engendreMermaid(Msimple)));
 
+  /* ── appartenance à une section ───────────────────────────────────── */
+  G("Sections");
+  const Msec = montageVide();
+  Msec.blocs = [{ id:"s1", comp:"source", nom:"A", x:100, y:100, params: defauts("source") }];
+  Msec.zones = [{ id:"za", nom:"grande", x:0,  y:0,  w:600, h:400, teinte:0 },
+                { id:"zb", nom:"petite", x:80, y:80, w:260, h:160, teinte:1 }];
+  eq("le plus petit encadré l'emporte quand ils se recouvrent",
+     sectionDuBloc(Msec, Msec.blocs[0]).id, "zb");
+  Msec.blocs[0].x = 20;                       // le bloc dépasse la petite à gauche
+  eq("un bloc qui dépasse appartient encore, tant que son centre est dedans",
+     sectionDuBloc(Msec, Msec.blocs[0]).id, "zb");
+  Msec.blocs[0].x = -60;                      // centre à -60+98 = 38 : hors de zb
+  eq("… et n'appartient plus dès que son centre sort", sectionDuBloc(Msec, Msec.blocs[0]).id, "za");
+  Msec.blocs[0].x = -400;
+  eq("hors de tout encadré, aucune section", sectionDuBloc(Msec, Msec.blocs[0]), null);
+  Msec.blocs[0].x = 100;
+  eq("la section retrouve son bloc", blocsDeSection(Msec, Msec.zones[1]).length, 1);
+  eq("… et la grande ne le compte pas deux fois", blocsDeSection(Msec, Msec.zones[0]).length, 0);
+  const Mex = EXEMPLES["Chaîne d'intégration continue"]();
+  ok("chaque bloc de l'exemple d'accueil est dans une section",
+     Mex.blocs.every(b => sectionDuBloc(Mex, b)),
+     Mex.blocs.filter(b => !sectionDuBloc(Mex, b)).map(b => b.nom).join(", "));
+
   /* ── aucun repli silencieux : les six chemins retrouvés en revue ───── */
   G("Aucun repli silencieux");
 
@@ -3554,17 +3651,15 @@ let vueRun = { vals: {}, liens: {}, files: {}, actifs: [] };
 let lecture = { i: 0, joue: false, minuteur: null };
 let presse = null;            // presse-papier interne
 
-const P_BLOC = { w: 196 };
-function hauteurBloc(b){
-  const n = Math.max(portsDe(b.comp, b.params, "e").length, portsDe(b.comp, b.params, "s").length, 1);
-  return Math.max(82, 40 + n * 20);
-}
 function posPort(b, sens, i){
   const l = portsDe(b.comp, b.params, sens), n = l.length || 1, h = hauteurBloc(b);
   return { x: b.x + (sens === "s" ? P_BLOC.w : 0), y: b.y + 30 + (i + 1) * (h - 30) / (n + 1) };
 }
 const bloc = id => M.blocs.find(b => b.id === id);
 const zone = id => (M.zones || []).find(z => z.id === id);
+
+const sectionDe = b => sectionDuBloc(M, b);
+const blocsDe = z => blocsDeSection(M, z);
 
 function idNeuf(p){ return p + (++seq); }
 
@@ -3583,8 +3678,8 @@ function nouvelleZone(x, y){
    pâle), claire du thème sombre. Les valeurs du thème clair ont été assombries
    pour dépasser 4,5:1 sur le fond du canevas — elles servent aussi de couleur au
    titre de la section, pas seulement de bordure. */
-const TEINTES = [["#4B6BA1","#7FA0DC"],["#7355A0","#A98CD8"],["#0D767F","#35C6D4"],
-                 ["#A8478A","#DC80BE"],["#826637","#C4A465"],["#37718B","#79B8D4"]];
+const TEINTES = [["#4B6BA1","#82A3DD"],["#7355A0","#B096DB"],["#0D767F","#35C6D4"],
+                 ["#A8478A","#DE86C1"],["#826637","#C4A465"],["#37718B","#79B8D4"]];
 const sombre = () => document.documentElement.getAttribute("data-theme") === "dark" ||
   (!document.documentElement.getAttribute("data-theme") && matchMedia("(prefers-color-scheme: dark)").matches);
 const teinte = i => TEINTES[i % TEINTES.length][sombre() ? 1 : 0];
@@ -3652,11 +3747,17 @@ function dessine(){
   M.blocs.forEach(b => {
     const c = compDe(b.comp) || { nom: b.comp, ic: "?", coul: "var(--crit)", aide: "comportement inconnu" };
     const el = document.createElement("div");
-    el.className = "bloc" + (sel.has(b.id) ? " sel" : "") + (compDe(b.comp) ? "" : " enpanne");
+    el.className = "bloc" + (sel.has(b.id) ? " sel" : "") + (compDe(b.comp) ? "" : " enpanne")
+      + (selZone && sectionDe(b) && sectionDe(b).id === selZone ? " dans-section" : "");
     el.id = "B" + b.id;
     el.style.left = b.x + "px"; el.style.top = b.y + "px";
     el.style.height = hauteurBloc(b) + "px";
-    el.style.borderLeftColor = c.coul;
+    /* La barre de gauche dit à quelle SECTION le bloc appartient ; la pastille
+       de l'en-tête garde la couleur de sa FAMILLE. Deux informations, deux
+       endroits — et l'appartenance se lit sans avoir à suivre les bordures. */
+    const sec = sectionDe(b);
+    el.style.borderLeftColor = sec ? teinte(sec.teinte) : c.coul;
+    if (sec) el.dataset.section = sec.id;
     el.innerHTML = corpsBloc(b, c);
     portsDe(b.comp, b.params, "e").forEach((p, i) => el.appendChild(elPort(b, "e", i, p)));
     portsDe(b.comp, b.params, "s").forEach((p, i) => el.appendChild(elPort(b, "s", i, p)));
@@ -3932,10 +4033,12 @@ wrap.addEventListener("pointerdown", e => {
     const p = pos(e);
     glisse = e.target.classList.contains("poi")
       ? { type: "zone-redim", z, x0: p.x, y0: p.y, w0: z.w, h0: z.h, bouge: 0 }
+      /* On mémorise la position de chaque bloc RELATIVEMENT à l'encadré. Les
+         aligner chacun sur la grille de son côté les faisait dériver de
+         quelques pixels à chaque déplacement : au bout de plusieurs, la mise en
+         page se défaisait toute seule. */
       : { type: "zone", z, dx: p.x - z.x, dy: p.y - z.y, bouge: 0,
-          blocs: M.blocs.filter(b => b.x >= z.x && b.y >= z.y &&
-                 b.x + P_BLOC.w <= z.x + z.w && b.y + hauteurBloc(b) <= z.y + z.h)
-                 .map(b => ({ b, dx: p.x - b.x, dy: p.y - b.y })) };
+          blocs: blocsDe(z).map(b => ({ b, ox: b.x - z.x, oy: b.y - z.y })) };
     dessine(); inspecteur();
     return;
   }
@@ -3992,8 +4095,8 @@ document.addEventListener("pointermove", e => {
     z.x = aligne(p.x - glisse.dx); z.y = aligne(p.y - glisse.dy);
     const el = $("Z" + z.id);
     if (el){ el.style.left = z.x + "px"; el.style.top = z.y + "px"; }
-    glisse.blocs.forEach(({ b, dx, dy }) => {
-      b.x = aligne(p.x - dx); b.y = aligne(p.y - dy);
+    glisse.blocs.forEach(({ b, ox, oy }) => {
+      b.x = z.x + ox; b.y = z.y + oy;
       const eb = $("B" + b.id);
       if (eb){ eb.style.left = b.x + "px"; eb.style.top = b.y + "px"; }
     });
@@ -4103,6 +4206,7 @@ addEventListener("keydown", e => {
   if (ctrl && e.key.toLowerCase() === "v"){ colle(); return; }
   if (ctrl && e.key.toLowerCase() === "d"){ e.preventDefault(); duplique(); return; }
   if (ctrl && e.key.toLowerCase() === "r"){ e.preventDefault(); range(); return; }
+  if (ctrl && e.key.toLowerCase() === "e"){ e.preventDefault(); range(4); return; }
   if (ctrl && e.key.toLowerCase() === "s"){ e.preventDefault(); enregistreFichier(); return; }
   if (ctrl && e.key === "0"){ e.preventDefault(); ajusteVue(); return; }
   if (ctrl && e.key === "Enter"){ e.preventDefault(); execute(true); return; }
@@ -4161,27 +4265,48 @@ function colle(){
 }
 function duplique(){ copie(); colle(); }
 
-/* ── rangement automatique : par vagues, colonne par colonne ─────────────── */
-function range(){
+/* ── rangement automatique : par vagues, en étages ────────────────────────
+   Une vague = une colonne. Quand les colonnes dépassent la largeur voulue, on
+   repart à la ligne un étage plus bas — mais TOUJOURS de gauche à droite.
+   Alterner le sens raccourcirait les fils de raccord, au prix de la seule chose
+   qui compte dans un schéma de principe : on doit pouvoir le lire dans un sens
+   unique. Le fil qui redescend d'un étage au suivant contourne, et sa pointe
+   dit dans quel sens il va. */
+const PAS_X = () => P_BLOC.w + 110;
+
+function colonnesParEtageAuto(){
+  const r = wrap.getBoundingClientRect();
+  const dispo = (r.width - 120) / Math.max(.35, Math.min(1, vue.z));
+  return Math.max(3, Math.floor(dispo / PAS_X()));
+}
+
+function range(parEtage){
   if (!M.blocs.length) return;
+  const n = parEtage > 0 ? parEtage
+          : (nb(M.etage, 0) > 0 ? nb(M.etage, 0) : colonnesParEtageAuto());
+  let etages = 1;
   modifie(() => {
     const rang = vagues(M);
     const colonnes = {};
     M.blocs.forEach(b => (colonnes[rang[b.id]] ??= []).push(b));
     const cles = Object.keys(colonnes).map(Number).sort((a, b) => a - b);
-    let x = 80;
-    cles.forEach(c => {
+    let x = 80, yEtage = 120, hEtage = 0;
+    cles.forEach((c, i) => {
+      if (i > 0 && i % n === 0){          // retour à la ligne : étage suivant
+        yEtage += hEtage + 150; x = 80; hEtage = 0; etages++;
+      }
       const l = colonnes[c];
       /* Dans une colonne, on garde l'ordre vertical existant : le rangement
          ne doit pas mélanger ce que l'utilisateur a déjà organisé. */
       l.sort((a, b) => a.y - b.y);
-      let y = 120;
+      let y = yEtage;
       l.forEach(b => { b.x = x; b.y = y; y += hauteurBloc(b) + 46; });
-      x += P_BLOC.w + 110;
+      hEtage = Math.max(hEtage, y - yEtage - 46);
+      x += PAS_X();
     });
   });
   ajusteVue();
-  pain("montage rangé par vagues");
+  pain(etages > 1 ? `rangé en ${etages} étages de ${n} colonnes` : "montage rangé par vagues");
 }
 
 $("z-plus").onclick = () => { vue.z = Math.min(2.4, vue.z * 1.2); applique(); };
@@ -4452,11 +4577,18 @@ function vueMontage(f){
         <td style="font-size:10.5px;color:var(--ink-3)">${ech([...new Set(parCat[c].map(b => compDe(b.comp).nom))].join(", "))}</td></tr>`).join("")}
     </table>
 
-    <div class="h2">Pour aller vite</div>
-    <div class="rang"><button class="btn sm" id="vm-ranger">⌗ Ranger</button>
+    <div class="h2">Mise en page</div>
+    <div class="champ"><label>Colonnes par étage</label>
+      <input id="vm-etage" type="number" min="0" value="${nb(M.etage, 0)}">
+      <div class="aide">Au-delà, le montage repart à la ligne un étage plus bas.
+        <b>0</b> = autant que l'écran en accepte. Le sens de lecture reste
+        toujours de gauche à droite.</div></div>
+    <div class="rang"><button class="btn sm" id="vm-ranger">⌗ Ranger en étages</button>
       <button class="btn sm" id="vm-forge">✎ Forger</button>
       <button class="btn sm" id="vm-aide">? Aide</button></div>`;
 
+  $("vm-etage").onchange = e => { M.etage = Math.max(0, Math.floor(nb(e.target.value, 0)));
+                                  sauve(); pain(M.etage ? `${M.etage} colonnes par étage` : "étages ajustés à l'écran"); };
   $("vm-nom").onclick = renomme;
   $("vm-ranger").onclick = range;
   $("vm-forge").onclick = () => ouvreForge(null);
@@ -5075,7 +5207,9 @@ function COMMANDES(){
     { g:"Exécution", ic:"■", nom:"Effacer l'exécution en cours", f:() => $("t-stop").click() },
     { g:"Exécution", ic:"⚄", nom:"Tirer une nouvelle graine", f:() => $("t-graine-hasard").click() },
 
-    { g:"Montage", ic:"⌗", nom:"Ranger le montage par vagues", cle:"Ctrl R", f:range },
+    { g:"Montage", ic:"⌗", nom:"Ranger le montage en étages", cle:"Ctrl R", f:() => range() },
+    { g:"Montage", ic:"⌐", nom:"Ranger sur un seul étage (tout en ligne)", f:() => range(999) },
+    { g:"Montage", ic:"≡", nom:"Ranger en étages courts (4 colonnes)", f:() => range(4) },
     { g:"Montage", ic:"⊡", nom:"Tout voir", cle:"Ctrl 0", f:ajusteVue },
     { g:"Montage", ic:"✎", nom:"Forger un nouveau bloc", f:() => ouvreForge(null) },
     { g:"Montage", ic:"▭", nom:"Ajouter un encadré de section", f:() => modifie(() => {
@@ -5640,7 +5774,7 @@ $("b-tiroir").onclick = basculeTiroir;
   });
 })();
 
-$("b-ranger").onclick = range;
+$("b-ranger").onclick = () => range();
 $("b-annuler").onclick = annuler;
 $("b-retablir").onclick = retablir;
 addEventListener("resize", () => { minicarte(); if ($("v-chrono").classList.contains("on")) dessineChrono(); });
@@ -5731,7 +5865,7 @@ function tenteMigration(){
 (function demarre(){
   const repris = charge() || tenteMigration();
   if (!repris || !M.blocs.length){
-    M = EXEMPLES["Contrôle et réparation"]();
+    M = EXEMPLES["Chaîne d'intégration continue"]();
     seq = M.seq || 100;
   }
   chargeForges(M.forges);

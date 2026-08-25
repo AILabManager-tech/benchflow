@@ -47,6 +47,12 @@ sinon un scénario ne voudrait rien dire.
 | Fiabilité | Réparer (budget + usure + backoff), Disjoncteur, Aléa de panne, Refuser |
 | Sortie | Sortie, Rebut, Assertion, Sonde |
 
+À l'ouverture, l'atelier charge une **chaîne d'intégration continue** : des commits
+poussés, une compilation qui refuse, des tests instables, une reprise bornée, un
+disjoncteur qui finit par arrêter d'insister, un déploiement à la fois — et deux issues
+honnêtes, la production ou le retour arrière. Huit commits entrent, sept sortent en
+production, un repart en arrière : celui qui ne compilait pas.
+
 **Six types de valeur** : nombre, texte, booléen, liste, objet, anomalie. Les types se
 propagent statiquement dans le graphe : on connaît le type porté par un fil avant
 d'exécuter quoi que ce soit.
@@ -58,6 +64,21 @@ aléatoire. Sans eux un pipeline n'est qu'un dessin ; avec eux, c'est un modèle
 **Blocs forgés.** La forge (`✎ Forger`) permet d'écrire son propre comportement : ses
 ports, ses réglages, son code. Un bloc forgé se comporte ensuite comme les autres et
 voyage dans le fichier du montage — donc il se partage avec lui.
+
+## Sections et étages
+
+Un **encadré de section** regroupe des blocs pour expliquer. Un bloc lui appartient quand
+son **centre** est dedans — règle franche, qui se juge à l'œil, et qui décide aussi bien du
+déplacement groupé que de la couleur : la barre de gauche d'un bloc prend la couleur de sa
+section, sa pastille d'en-tête garde celle de sa famille. Si deux encadrés se recouvrent, le
+plus petit l'emporte.
+
+Quand le montage s'allonge au-delà de l'écran, **`Ctrl R` le range en étages** : les vagues
+se suivent de gauche à droite, et le surplus repart à la ligne un étage plus bas. Le sens de
+lecture reste unique — alterner le sens raccourcirait les fils de raccord au prix de la
+seule chose qui compte dans un schéma de principe. Le nombre de colonnes par étage se règle
+dans le panneau du montage (`0` = autant que l'écran en accepte) ; `Ctrl E` force des étages
+courts.
 
 ## Le temps
 
@@ -114,7 +135,7 @@ Le fichier est coupé en deux moitiés par les marqueurs `@noyau:debut` / `@noya
 touche jamais au DOM. Il tourne donc tel quel hors du navigateur :
 
 ```
-node verifier.mjs        211 assertions · 124 paires de couleurs au-dessus du
+node verifier.mjs        221 assertions · 124 paires de couleurs au-dessus du
                          seuil de contraste · engendre et exécute les 4 exemples
                          en JavaScript et en Python
 node verifier.mjs -v     détail de chaque assertion
