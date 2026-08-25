@@ -1,11 +1,15 @@
 # Atelier de blocs
 
-Bac à sable de flux de données. On pose des blocs, on tire des fils, on donne une
-petite fonction à chacun, et on regarde des valeurs typées traverser le montage.
+Un bac à sable pour **concevoir un pipeline, puis le faire tourner**. On pose des blocs,
+on tire des fils, on donne une fonction à chacun — et des valeurs typées traversent le
+montage pendant qu'une horloge simulée avance, que les files se remplissent et que les
+pannes arrivent.
 
-Sert à **éprouver une idée de pipeline avant de l'écrire en code** : où une valeur se
-perd, ce qu'une validation refuse, ce qu'une réparation bornée absorbe, ce qui finit
-chez l'humain.
+Sert à **éprouver une idée de pipeline avant de l'écrire en code** : où une valeur se perd,
+ce qu'une validation refuse, ce qu'une reprise bornée absorbe, ce qui finit chez l'humain,
+et ce que tout ça coûte en temps.
+
+Un seul fichier HTML. Aucune dépendance. Ouvrable hors ligne, pour toujours.
 
 ## Lancer
 
@@ -13,33 +17,116 @@ chez l'humain.
 - `atelier-blocs` au terminal, ou
 - ouvrir `atelier.html` dans un navigateur.
 
-Le lanceur ouvre une fenêtre d'application sans barre d'adresse, avec son propre
-profil de navigateur — le montage sauvegardé lui appartient et ne se mélange pas au
-reste.
+Le lanceur ouvre une fenêtre d'application sans barre d'adresse, avec son propre profil de
+navigateur — le montage sauvegardé lui appartient et ne se mélange pas au reste.
+
+## Les trois principes tenus
+
+**Aucun repli silencieux.** Un mode inconnu, une expression fautive, une conversion
+impossible produisent une *anomalie qui voyage* sur un fil — jamais un zéro par défaut. Un
+bloc qui ne sait pas traiter une anomalie ne l'avale pas : il la retransmet telle quelle,
+sans exécuter sa fonction, et le journal le dit.
+
+**Rien n'est masqué.** Chaque valeur qui passe s'affiche sur son fil, chaque décision est
+journalisée avec son instant simulé, chaque file d'attente se compte, chaque bloc rapporte
+son taux d'occupation.
+
+**Reproductible.** Tout le hasard vient d'une graine. Même graine, même exécution —
+sinon un scénario ne voudrait rien dire.
 
 ## Ce qu'il y a dedans
 
-Neuf comportements : Source, Transformer, Valider, Aiguiller, Fusionner, Réparer,
-Compter, Refuser, Sortie. Quatre types de valeur : nombre, texte, booléen, anomalie.
+**26 comportements** répartis en six familles :
 
-Les encadrés de section regroupent visuellement des blocs. Ils ne changent rien à
-l'exécution — ils expliquent.
+| Famille | Blocs |
+|---|---|
+| Entrée | Source, Générateur (suite / uniforme / normale / liste), Jeu de données (CSV ou JSON) |
+| Transformation | Fonction, Script, Convertir, Formater |
+| Contrôle | Valider, Aiguiller (*n* voies), Filtrer, Attendre, Limiteur de débit |
+| Agrégation | Fusionner, Fenêtre, Accumuler, Compter, Statistiques |
+| Fiabilité | Réparer (budget + usure + backoff), Disjoncteur, Aléa de panne, Refuser |
+| Sortie | Sortie, Rebut, Assertion, Sonde |
 
-Le bouton `→ schema.json` convertit le montage au format de la skill `/blocs`, qui
-en fait un schéma présentable.
+**Six types de valeur** : nombre, texte, booléen, liste, objet, anomalie. Les types se
+propagent statiquement dans le graphe : on connaît le type porté par un fil avant
+d'exécuter quoi que ce soit.
 
-## Principes tenus
+**Cinq réglages avancés sur *tous* les blocs** : temps de traitement, variation du temps,
+coût par valeur, traitements simultanés (d'où les files d'attente), et taux de panne
+aléatoire. Sans eux un pipeline n'est qu'un dessin ; avec eux, c'est un modèle.
 
-- **Aucun repli silencieux.** Un mode inconnu, une expression fautive, une capacité
-  absente produisent une *anomalie qui voyage*, jamais un résultat par défaut.
-- **Rien n'est masqué.** Chaque valeur qui passe s'affiche sur son fil; le journal
-  garde la trace de chaque décision.
-- **Aucune dépendance.** Un seul fichier HTML, ouvrable hors ligne, pour toujours.
+**Blocs forgés.** La forge (`✎ Forger`) permet d'écrire son propre comportement : ses
+ports, ses réglages, son code. Un bloc forgé se comporte ensuite comme les autres et
+voyage dans le fichier du montage — donc il se partage avec lui.
 
-## État
+## Le temps
 
-Première esquisse, volontairement minimale. Le moteur d'exécution est couvert par
-26 assertions (comportements, réparation bornée à budget variable, expression
-fautive, montage sans source, exécution de bout en bout sans boucle infinie).
+L'exécution se calcule **d'un trait** — un ordonnanceur à événements discrets, sans
+animation — puis **s'enregistre**. La barre du bas rejoue cet enregistrement : pas à pas,
+à vitesse réglable, en avant comme en arrière. Ce qu'on regarde n'est jamais le calcul,
+c'est sa relecture. D'où le retour en arrière gratuit.
 
-Pas de dépôt Git pour l'instant — à initialiser si le développement se poursuit.
+- **Chronologie** — un diagramme de Gantt de tous les traitements.
+- **Mesures** — durée, débit, coût, occupation par bloc, file maximale, et la désignation
+  du goulot d'étranglement.
+- **Simulation ×N** — rejoue le montage N fois avec N graines, et donne la distribution :
+  moyenne, p95, écart-type, histogrammes, ce qui arrive à chaque puits.
+
+## Scénarios
+
+Un scénario fige des entrées et une graine, puis énonce ce qu'on attend : ce qu'un puits
+doit recevoir, combien, combien d'anomalies, quelle durée maximale, quel coût. C'est le
+test unitaire du montage — après chaque modification, on sait tout de suite ce qu'on a
+cassé. Les blocs **Assertion** posés dans le flux alimentent les mêmes résultats.
+
+Les quatre montages d'exemple livrés viennent avec leurs scénarios, tous verts.
+
+## Ce qui sort d'ici
+
+- **JavaScript** — un fichier autonome qui embarque le moteur et les fonctions
+  réellement exécutées, obtenues par `Function.toString`. Ce qui tourne dans la page et
+  ce qui tourne dans le fichier sont le *même code* : aucune dérive possible.
+  `node montage.js` donne exactement le même journal que l'atelier.
+- **Python** — traduction fidèle du flux (mêmes blocs, mêmes ports, mêmes règles de
+  propagation des anomalies), sans l'horloge simulée. Les expressions JavaScript passent
+  par un traducteur restreint qui échoue bruyamment plutôt que d'inventer.
+- **schema.json** pour la skill `/blocs`, **Mermaid**, et le montage brut.
+
+## Raccourcis
+
+`Ctrl K` ouvre la palette de commandes — tout y est. Les principaux :
+
+| | |
+|---|---|
+| `Ctrl ⏎` / `Maj ⏎` | exécuter avec ou sans animation |
+| `Espace` · `←` `→` | jouer/pause · reculer/avancer d'un événement |
+| `Ctrl Z` / `Ctrl ⇧ Z` | annuler / rétablir |
+| `Ctrl C` `Ctrl V` `Ctrl D` | copier, coller, dupliquer |
+| `Ctrl A` · `Maj + glisser` | tout sélectionner · sélection par cadre |
+| `Ctrl R` · `Ctrl 0` | ranger par vagues · tout voir |
+| `Ctrl S` | enregistrer dans un fichier |
+| `?` | aide complète |
+
+## Vérification
+
+Le fichier est coupé en deux moitiés par les marqueurs `@noyau:debut` / `@noyau:fin`. Le
+**noyau** — types, catalogue, moteur, diagnostics, scénarios, engendrement de code — ne
+touche jamais au DOM. Il tourne donc tel quel hors du navigateur :
+
+```
+node verifier.mjs        181 assertions, puis engendre et exécute
+                         les 4 exemples en JavaScript et en Python
+node verifier.mjs -v     détail de chaque assertion
+node verifier.mjs --rapide   assertions seulement
+```
+
+Les mêmes assertions tournent dans la page, onglet **Moteur**. Un seul jeu de tests, deux
+endroits pour le lancer.
+
+## Fichiers
+
+```
+atelier.html    l'application entière — noyau (§0-§11) puis interface (§12-§22)
+verifier.mjs    lance les auto-tests du noyau sous Node, hors navigateur
+README.md       ce fichier
+```
