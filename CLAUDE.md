@@ -71,23 +71,22 @@ le lanceur `~/.local/bin/atelier-blocs` et l'entrée `.desktop` pointent dessus 
 vivent hors du dépôt. Un dépôt peut porter un autre nom que son dossier de
 travail, ça n'a jamais gêné personne.
 
-## Défaut connu, non corrigé
+## Déterminisme — ce qu'il couvre exactement
 
-**Le déterminisme ne tient pas pour le code écrit par l'utilisateur.** Un bloc
-Script ou un bloc forgé peut appeler `Math.random()` ou `Date.now()` directement,
-et la garantie « même graine, même exécution » saute — sans un mot, ce que le
-principe 3 interdit. Reproduit :
+Corrigé le 2026-08-25. `Math` et `Date` sont masqués dans la portée du code
+écrit par l'utilisateur — expressions, blocs Script, blocs forgés — par
+`porteeDeterministe()`. `Math.random()`, `Date.now()` et `new Date()` sans
+argument **lèvent** ; l'erreur devient une anomalie sur le fil et une ligne de
+journal, conformément au principe 3. Le reste de `Math` et une date construite
+avec un argument passent tels quels.
 
-```
-Script « return Math.round(Math.random()*1000) », même graine 7
-  exécution 1 : 890      exécution 2 : 880
-Script « return Math.round(hasard()*1000) », même graine 7
-  identiques ✓
-```
+Le substitut est aussi emporté par `engendreJS` (`sourceNoyau` pousse
+`const PORTEE = porteeDeterministe();`) : sinon le fichier engendré serait moins
+déterministe que la page dont il se réclame.
 
-Conséquence : un scénario bâti sur un tel bloc devient instable en silence.
-Le correctif tient en quelques lignes — masquer `Math` et `Date` dans la portée
-du code utilisateur, en laissant `hasard()` comme seule source d'aléa.
+Ce n'est **pas un bac à sable**. `(function(){}).constructor` reste accessible,
+et du code décidé à s'échapper y arrive. Ce qui est fermé, c'est l'accident —
+le seul cas réel. Ne pas promettre plus que ça dans le README.
 
 ## Vérifier — les quatre boucles
 

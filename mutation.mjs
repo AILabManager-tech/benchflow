@@ -85,6 +85,18 @@ const MUTATIONS = [
    vers: `  M.liens = M.liens.filter(l => true);`,
    attend: [/fil sans extrémité est retiré/, /en le disant/] },
 
+ { nom: "Math et Date masqués dans le code de l'utilisateur",
+   de: `    const brute = new Function("Math", "Date", ...args, \`"use strict"; return (\${src});\`);
+    const f = (...a) => brute(PORTEE.Math, PORTEE.Date, ...a);`,
+   vers: `    const f = new Function(...args, \`"use strict"; return (\${src});\`);`,
+   attend: [/Math\.random\(\) refusé/, /Date\.now\(\) refusé/, /new Date\(\) sans argument refusé/] },
+
+ { nom: "corps de bloc : même portée que les expressions",
+   de: `    const brute = new Function("Math", "Date", ...args, \`"use strict";\\n\${src}\`);
+    const f = (...a) => brute(PORTEE.Math, PORTEE.Date, ...a);`,
+   vers: `    const f = new Function(...args, \`"use strict";\\n\${src}\`);`,
+   attend: [/bloc Script ne peut plus tirer hors graine/] },
+
  { nom: "cache d'expressions borné",
    de: `  if (_cacheExpr.size > CACHE_MAX && !_cacheExpr.has(cle)) _cacheExpr.clear();`,
    vers: `  /* mutation : plus de borne */`,

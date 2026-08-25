@@ -833,6 +833,36 @@ function affCourt(v, max){
 /** Valeur brute d'une valeur qui circule, pour la donner aux expressions. */
 const brut = v => (v === undefined || v === null) ? undefined : v.v;
 
+/** Substituts de `Math` et de `Date` posés dans la portée du code écrit par
+ *  l'utilisateur — expressions, blocs Script, blocs forgés.
+ *
+ *  « Même graine, même exécution » ne tient que si le seul aléa du montage sort
+ *  de la graine. Un corps de bloc pouvait appeler `Math.random()` ou
+ *  `Date.now()` : deux exécutions différaient, et rien ne le disait — le repli
+ *  silencieux, mais sur le déterminisme. Ces trois entrées lèvent désormais ;
+ *  l'erreur devient une anomalie sur le fil et une ligne de journal. Tout le
+ *  reste de `Math` et une date construite avec un argument sont reproductibles
+ *  et passent tels quels.
+ *
+ *  Ce n'est pas un bac à sable : du code décidé à s'échapper y arrive. C'est un
+ *  garde-fou contre l'accident, qui est le cas réel. */
+function porteeDeterministe(){
+  const refus = quoi => () => { throw new Error(quoi + " n'est pas disponible dans un bloc : "
+    + "l'exécution ne serait plus reproductible. Utilise hasard() pour l'aléa, temps pour l'horloge."); };
+  const M = { random: refus("Math.random()") };
+  Object.getOwnPropertyNames(Math).forEach(k => { if (k !== "random") M[k] = Math[k]; });
+  const D = function(...a){
+    if (!a.length) refus("new Date() sans argument")();
+    return new Date(...a);
+  };
+  D.now = refus("Date.now()");
+  D.parse = Date.parse;
+  D.UTC = Date.UTC;
+  D.prototype = Date.prototype;
+  return { Math: Object.freeze(M), Date: D };
+}
+const PORTEE = porteeDeterministe();
+
 /** Compile une expression utilisateur une seule fois et met en cache.
  *  Une expression fautive lève : l'appelant en fera une anomalie. */
 const CACHE_MAX = 400;
@@ -848,7 +878,11 @@ function compileExpr(src, args){
     return c.f;
   }
   try {
-    const f = new Function(...args, `"use strict"; return (${src});`);
+    /* `Math` et `Date` sont déclarés en tête : ils masquent les globales dans
+       le code de l'utilisateur. En tête et non en queue, pour qu'un appelant
+       qui passe moins d'arguments que de noms ne les décale pas. */
+    const brute = new Function("Math", "Date", ...args, `"use strict"; return (${src});`);
+    const f = (...a) => brute(PORTEE.Math, PORTEE.Date, ...a);
     _cacheExpr.set(cle, { f });
     return f;
   } catch(err){
@@ -869,7 +903,8 @@ function compileCorps(src, args){
     return c.f;
   }
   try {
-    const f = new Function(...args, `"use strict";\n${src}`);
+    const brute = new Function("Math", "Date", ...args, `"use strict";\n${src}`);
+    const f = (...a) => brute(PORTEE.Math, PORTEE.Date, ...a);
     _cacheCorps.set(cle, { f });
     return f;
   } catch(err){
@@ -1069,7 +1104,8 @@ script: {
   entrees:["x"], sorties:["y"],
   params:[{k:"corps", l:"Corps de la fonction", t:"code",
     d:"// x : valeur reçue · etat : mémoire du bloc · aide : boîte à outils\nconst t = Math.abs(x);\nreturn t > 100 ? 100 : t;",
-    aide:"Variables offertes : <code>x</code>, <code>etat</code>, <code>aide</code>, <code>hasard()</code>."}],
+    aide:"Variables offertes : <code>x</code>, <code>etat</code>, <code>aide</code>, <code>hasard()</code>. "
+       + "<code>Math.random()</code> et <code>Date.now()</code> lèvent : ils casseraient la reproductibilité."}],
   fn(p, e, ctx){
     const f = compileCorps(p.corps, ["x","etat","aide","hasard"]);
     return { y: val(f(brut(e.x), ctx.etat, AIDE, ctx.hasard), "auto") };
@@ -2500,9 +2536,12 @@ function sourceNoyau(){
   bouts.push(`const _cacheCorps = new Map();`);
   bouts.push(`const FORGES = new Map();`);
   [alea, aleaNormal, nb, anomalie, typeBrut, typeDe, val, convertir, affBrut, aff,
-   compileExpr, compileCorps, evalue, portsDe, attendTout, paramsDe, defauts,
+   porteeDeterministe, compileExpr, compileCorps, evalue, portsDe, attendTout, paramsDe, defauts,
    compileForge, chargeForges, compDe, indicePort, executer]
     .forEach(f => bouts.push(f.toString()));
+  /* Sans cette ligne, le fichier engendré compilerait le code de l'utilisateur
+     sans masquer Math ni Date : il serait moins déterministe que la page. */
+  bouts.push(`const PORTEE = porteeDeterministe();`);
   bouts.push(`const estAnomalie = ${estAnomalie.toString()};`);
   bouts.push(`const brut = ${brut.toString()};`);
   bouts.push(Tas.toString());
@@ -3189,6 +3228,22 @@ function lancerTests(){
   ok("tirage dans [0,1[", (() => { const r = alea(7); for (let i = 0; i < 200; i++){ const x = r(); if (x < 0 || x >= 1) return false; } return true; })());
   const moyN = (() => { const r = alea(3); let s = 0; for (let i = 0; i < 4000; i++) s += aleaNormal(r, 10, 2); return s / 4000; })();
   pres("loi normale centrée sur la moyenne", moyN, 10, 0.15);
+
+  /* Le code de l'utilisateur avait sa propre source d'aléa : un bloc Script
+     appelant Math.random() donnait deux exécutions différentes à graine égale,
+     sans un mot. Ces six assertions tiennent le trou fermé des deux côtés :
+     ce qui n'est pas reproductible lève, ce qui l'est passe encore. */
+  const leve = (src, motif) => { try { evalue(src, val(1)); return false; }
+                                 catch(e){ return motif.test(e.message); } };
+  ok("Math.random() refusé dans le code de l'utilisateur", leve("Math.random()", /reproductible/));
+  ok("Date.now() refusé de la même façon", leve("Date.now()", /reproductible/));
+  ok("new Date() sans argument refusé aussi", leve("new Date().getTime()", /reproductible/));
+  eq("le reste de Math passe toujours", evalue("Math.round(x * 1.1) + Math.max(1, 2)", val(10)), 13);
+  eq("une date construite avec un argument passe", evalue("new Date(0).getUTCFullYear()", val(1)), 1970);
+  ok("un bloc Script ne peut plus tirer hors graine", (() => {
+    try { COMP.script.fn({ corps: "return Math.random();" }, { x: val(1) },
+            { etat:{}, temps:0, hasard: alea(1), note:()=>{}, assertion:()=>{} }); return false; }
+    catch(e){ return /reproductible/.test(e.message); } })());
 
   G("Tas d'événements");
   const T = new Tas();
@@ -5483,6 +5538,9 @@ const FORGE_MODELE = {
 //   hasard()  tirage reproductible, entre 0 et 1
 //   note(t)   écrit une ligne dans le journal
 //   anomalie(motif)   fabrique une anomalie qui voyagera sur le fil
+//
+// Math.random(), Date.now() et new Date() sans argument lèvent ici : ils
+// rendraient l'exécution irreproductible. hasard() et temps les remplacent.
 //
 // Renvoie un objet { port: valeur }. Une valeur nue part par le premier port.
 
