@@ -1491,9 +1491,16 @@ const NOM_PORT = /^[A-Za-zÀ-ÖØ-öø-ÿ_][A-Za-zÀ-ÖØ-öø-ÿ0-9_]*$/;
 
 /** Compile une définition forgée en comportement utilisable par le moteur. */
 function compileForge(def){
-  const entrees = (def.entrees || []).filter(s => NOM_PORT.test(s));
-  const sorties = (def.sorties || []).filter(s => NOM_PORT.test(s));
-  const params  = (def.params  || []).filter(p => NOM_PORT.test(p.k));
+  /* Un nom de port devient une variable dans le code du bloc : il ne peut pas
+     contenir d'espace ni commencer par un chiffre. La forge l'interdit à la
+     saisie — mais un montage reçu d'ailleurs ne passe pas par la forge. Écarter
+     ces noms sans le dire ferait disparaître des ports d'un bloc, et les fils
+     qui s'y rattachaient avec eux. On écarte, et on garde la liste. */
+  const rejetes = [];
+  const nomValide = x => { if (NOM_PORT.test(x)) return true; rejetes.push(x); return false; };
+  const entrees = (def.entrees || []).filter(nomValide);
+  const sorties = (def.sorties || []).filter(nomValide);
+  const params  = (def.params  || []).filter(p => nomValide(p.k));
   const noms = entrees.concat(params.map(p => p.k), ["etat","aide","hasard","note","anomalie","temps","p","e"]);
   /* Les descriptions des blocs livrés contiennent du balisage volontaire ; celles
      d'un bloc forgé viennent d'ailleurs — parfois d'un fichier reçu. Elles sont
@@ -1501,7 +1508,7 @@ function compileForge(def){
   const texte = x => String(x === undefined || x === null ? "" : x).replace(/[<>&]/g, c =>
     ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c]);
   return {
-    forge: true, def,
+    forge: true, def, rejetes,
     nom: def.nom || "Bloc forgé", ic: def.ic || "★", coul: def.coul || "var(--texte)",
     cat: "Forgés", lat: nb(def.lat, 30),
     aide: texte(def.aide) || "Bloc forgé sur mesure.",
@@ -1596,6 +1603,15 @@ function normaliseMontage(M){
 
   if (M.blocs.some(b => b.__renomme))
     notes.push("Les fils qui touchaient un identifiant en double sont restés sur le premier bloc portant ce nom : impossible de deviner lequel des deux ils visaient. À vérifier.");
+
+  (M.forges || []).forEach(def => {
+    const mauvais = (def.entrees || []).concat(def.sorties || [])
+      .concat((def.params || []).map(p => p && p.k))
+      .filter(x => x !== undefined && !NOM_PORT.test(String(x)));
+    if (mauvais.length)
+      notes.push(`Le bloc forgé « ${def.nom || def.id} » déclare des noms impossibles : « ${mauvais.join(" », « ")} ». ` +
+                 `Ils sont écartés — le bloc aura moins de ports que prévu.`);
+  });
 
   const existe = new Set(M.blocs.map(b => b.id));
   const avant = M.liens.length;
@@ -2247,6 +2263,18 @@ function diagnostics(M){
              "Ce bloc casse au hasard. À ne pas oublier avant de conclure sur des mesures.");
     if (!M.liens.some(l => l.de.b === b.id || l.vers.b === b.id) && M.blocs.length > 1)
       ajoute("warn", b.id, `${b.nom} — bloc isolé`, "Aucun fil ne le relie au reste du montage.");
+  });
+
+  /* Un bloc forgé venu d'un fichier peut déclarer des noms de port impossibles.
+     Ils sont écartés à la compilation ; sans ce diagnostic, le bloc paraîtrait
+     simplement avoir moins de ports qu'annoncé. */
+  (M.forges || []).forEach(def => {
+    const c = compDe(def.id);
+    if (!c || !c.rejetes || !c.rejetes.length) return;
+    ajoute("err", (M.blocs.find(b => b.comp === def.id) || {}).id || null,
+      `${def.nom || def.id} — noms impossibles écartés`,
+      `« ${c.rejetes.join(" », « ")} » : un nom de port ou de réglage doit commencer par une lettre et ` +
+      `ne contenir ni espace ni signe. Ces ports n'existent pas dans le bloc, et les fils qui les visaient sont perdus.`);
   });
 
   /* Un fil dont une extrémité a disparu ne se voit pas sur le canevas : il n'est
@@ -3404,6 +3432,21 @@ function lancerTests(){
   eq("… et sans être modifié", JSON.stringify(Msain), avant);
   ok("le compteur repart au-dessus des identifiants existants",
      remis3.seq > Math.max(...Msain.blocs.map(b => parseInt(b.id.slice(1), 10))));
+
+  const cRej = compileForge({ id:"f:rej", nom:"R", entrees:["x","mon port"], sorties:["y","2mauvais"],
+    params:[{ k:"ok", l:"L", t:"texte", d:"" }, { k:"pas valide", l:"L", t:"texte", d:"" }],
+    corps:"return { y: x };" });
+  eq("un nom de port impossible est écarté", cRej.entrees.join(","), "x");
+  eq("… et la liste des écartés est conservée", cRej.rejetes.join(","), "mon port,2mauvais,pas valide");
+  const Mrej = montageVide();
+  Mrej.forges = [cRej.def];
+  Mrej.blocs = [{ id:"r1", comp:"f:rej", nom:"R", x:0, y:0, params:{} }];
+  chargeForges(Mrej.forges);
+  ok("un port écarté est dénoncé, pas caché",
+     diagnostics(Mrej).some(d => d.niveau === "err" && /noms impossibles/.test(d.titre)));
+  const notesRej = normaliseMontage(Mrej).notes;
+  ok("… et signalé dès l'ouverture du fichier", notesRej.some(t => /noms impossibles/.test(t)));
+  chargeForges([]);
 
   G("Bornes");
   const tailleAvant = _cacheExpr.size;

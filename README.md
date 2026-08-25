@@ -114,7 +114,7 @@ Le fichier est coupé en deux moitiés par les marqueurs `@noyau:debut` / `@noya
 touche jamais au DOM. Il tourne donc tel quel hors du navigateur :
 
 ```
-node verifier.mjs        205 assertions, puis engendre et exécute
+node verifier.mjs        209 assertions, puis engendre et exécute
                          les 4 exemples en JavaScript et en Python
 node verifier.mjs -v     détail de chaque assertion
 node verifier.mjs --rapide   assertions seulement
@@ -126,15 +126,22 @@ endroits pour le lancer.
 Un groupe d'assertions porte le nom **« Aucun repli silencieux »** : il tient en respect les
 chemins par lesquels une valeur pourrait disparaître sans un mot — fil vers un bloc absent,
 lot jamais complété, générateur coupé par une limite, enregistrement tronqué, anomalie
-changée en texte anodin, fil rebranché sur un autre port après un changement de réglage.
+changée en texte anodin, fil rebranché sur un autre port après un changement de réglage,
+port d'un bloc forgé écarté parce que son nom était impossible.
 Chacun de ces cas a existé dans le code et a été refermé ; les assertions sont là pour
 qu'ils ne reviennent pas.
 
 ## Reprise de l'esquisse
 
 Un montage ouvert depuis un fichier passe d'abord par une remise d'aplomb : identifiants
-uniques, fils dont les deux extrémités existent. Ce n'est jamais fait en douce — une boîte
-énumère chaque retouche.
+uniques, fils dont les deux extrémités existent, noms de port possibles. Ce n'est jamais
+fait en douce — une boîte énumère chaque retouche.
+
+> **Un montage est du code.** Les expressions des blocs et le corps des blocs forgés sont
+> du JavaScript, exécuté tel quel dès qu'on appuie sur Exécuter. C'est tout l'intérêt de
+> l'atelier — et cela veut dire qu'ouvrir un fichier `.atelier.json` reçu de quelqu'un
+> revient à lancer son code. À traiter comme un script, pas comme un document. Le panneau
+> **Code engendré**, onglet *Montage brut*, permet de lire un fichier avant de l'exécuter.
 
 L'esquisse précédente enregistrait son montage sous la clé `atelier`. Au premier
 démarrage, s'il en existe un, il est **converti et chargé**, avec un récapitulatif de ce
