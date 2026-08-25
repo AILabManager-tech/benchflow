@@ -7,6 +7,10 @@
 
        node verifier.mjs           tout vérifier
        node verifier.mjs -v        détailler chaque assertion
+
+   Vérifie trois choses : les auto-tests du noyau, les rapports de contraste des
+   jetons de couleur lus dans la feuille de style, et que le code engendré pour
+   chaque exemple tourne vraiment sous node et sous python3.
 */
 import { readFileSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -25,6 +29,60 @@ const fabrique = new Function(`${noyau}
   return { lancerTests, executer, EXEMPLES, engendreJS, engendrePython, diagnostics, verifieTous, monte, defauts, aff };`);
 const N = fabrique();
 
+/* ── contraste des jetons de couleur ───────────────────────────────────────
+   Les rapports sont calculés sur les valeurs lues dans la feuille de style
+   elle-même : si une couleur change là-haut, c'est celle-là qui est mesurée.
+   Un seul jeton mal réglé — --ink-3 l'a été — suffit à faire passer vingt
+   textes sous le seuil sans que rien ne l'annonce. */
+function contrasteJetons(){
+  const jetons = bloc => {
+    const o = {};
+    for (const m of bloc.matchAll(/(--[a-z0-9-]+)\s*:\s*(#[0-9A-Fa-f]{6})/g)) o[m[1]] = m[2];
+    return o;
+  };
+  const CLAIR  = jetons(page.slice(page.indexOf(":root{"), page.indexOf("@media (prefers-color-scheme:dark)")));
+  const iSombre = page.indexOf(':root[data-theme="dark"]{');
+  const SOMBRE = jetons(page.slice(iSombre, iSombre + 900));
+  const teintes = [...page.matchAll(/\["(#[0-9A-F]{6})","(#[0-9A-F]{6})"\]/g)].map(m => [m[1], m[2]]);
+
+  const hex = h => ({ r:parseInt(h.slice(1,3),16), g:parseInt(h.slice(3,5),16), b:parseInt(h.slice(5,7),16) });
+  const lum = c => { const f = v => { v/=255; return v<=.03928 ? v/12.92 : Math.pow((v+.055)/1.055,2.4); };
+    return .2126*f(c.r)+.7152*f(c.g)+.0722*f(c.b); };
+  const rap = (a, b) => { const L1 = lum(hex(a)), L2 = lum(hex(b));
+    return (Math.max(L1,L2)+.05)/(Math.min(L1,L2)+.05); };
+
+  const FONDS  = ["--surface","--surface-2","--surface-3","--ground"];
+  const APLATS = ["--accent","--ok","--warn","--crit","--abst","--nombre","--texte",
+                  "--booleen","--anomalie","--liste","--objet"];
+  const ENCRES = ["--ok","--warn","--crit","--accent-ink","--nombre","--texte",
+                  "--booleen","--anomalie","--liste","--objet"];
+
+  const ratés = [];
+  let total = 0;
+  const exige = (nom, a, b, seuil) => {
+    total++;
+    if (!a || !b){ ratés.push(`${nom} — jeton absent`); return; }
+    const v = rap(a, b);
+    if (v < seuil) ratés.push(`${nom} : ${v.toFixed(2)} < ${seuil}   (${a} sur ${b})`);
+  };
+
+  for (const [nomTheme, T, iT] of [["clair", CLAIR, 0], ["sombre", SOMBRE, 1]]){
+    FONDS.forEach(f => {
+      exige(`${nomTheme} · --ink-3 sur ${f}`, T["--ink-3"], T[f], 4.5);
+      exige(`${nomTheme} · --ink-2 sur ${f}`, T["--ink-2"], T[f], 4.5);
+      exige(`${nomTheme} · --ink sur ${f}`,   T["--ink"],   T[f], 7);
+    });
+    APLATS.forEach(a => exige(`${nomTheme} · --sur-teinte sur ${a}`, T["--sur-teinte"], T[a], 4.5));
+    ENCRES.forEach(c => {
+      exige(`${nomTheme} · ${c} en texte sur --surface`,   T[c], T["--surface"],   4.5);
+      exige(`${nomTheme} · ${c} en texte sur --surface-2`, T[c], T["--surface-2"], 4.5);
+    });
+    exige(`${nomTheme} · --accent-ink sur --accent-soft`, T["--accent-ink"], T["--accent-soft"], 4.5);
+    teintes.forEach((t, i) => exige(`${nomTheme} · teinte ${i} en titre sur --ground`, t[iT], T["--ground"], 4.5));
+  }
+  return { total, ratés };
+}
+
 const detaille = process.argv.includes("-v");
 const R = N.lancerTests();
 
@@ -40,8 +98,17 @@ console.log(R.echecs.length
   ? `✗ ${R.echecs.length} échec(s) sur ${R.total} assertions`
   : `✓ ${R.total} assertions vérifiées`);
 
+const C = contrasteJetons();
+if (C.ratés.length){
+  console.log(`✗ ${C.ratés.length} paire(s) de couleurs sous le seuil de contraste :`);
+  C.ratés.forEach(t => console.log("   " + t));
+  process.exitCode = 1;
+} else {
+  console.log(`✓ ${C.total} paires de couleurs au-dessus du seuil de contraste`);
+}
+
 /* Le code engendré doit vraiment tourner : on l'écrit et on le lance. */
-if (!R.echecs.length && !process.argv.includes("--rapide")){
+if (!R.echecs.length && !C.ratés.length && !process.argv.includes("--rapide")){
   const tmp = join(ici, ".verif");
   try { execFileSync("mkdir", ["-p", tmp]); } catch(e){}
   let sorties = 0;
@@ -70,4 +137,4 @@ if (!R.echecs.length && !process.argv.includes("--rapide")){
   }
 }
 
-process.exit(R.echecs.length ? 1 : (process.exitCode || 0));
+process.exit(R.echecs.length || C.ratés.length ? 1 : (process.exitCode || 0));

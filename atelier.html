@@ -12,24 +12,28 @@
    ═══════════════════════════════════════════════════════════════════ */
 :root{
   --ground:#EDEFF2; --surface:#FFFFFF; --surface-2:#F6F8FA; --surface-3:#E4E8ED;
-  --ink:#10161D; --ink-2:#3D4A57; --ink-3:#6B7986;
+  --ink:#10161D; --ink-2:#3D4A57; --ink-3:#5C6873;
   --line:#D2D9E0; --line-2:#BCC6D0; --grid:#DDE2E8; --grid-fort:#CFD7DF;
   --accent:#0E7C86; --accent-soft:#D6EDEF; --accent-ink:#095A62;
+  /* Encre à poser SUR un aplat de couleur. Claire ici, sombre en thème sombre :
+     sans ça, du blanc sur les aplats vifs du thème sombre tombe à 2 pour 1. */
+  --sur-teinte:#FFFFFF;
   --ok:#2E7D5B; --ok-soft:#DCEFE5;
-  --warn:#B07A12; --warn-soft:#F7EBD2;
+  --warn:#885E0E; --warn-soft:#F7EBD2;
   --crit:#B33A34; --crit-soft:#F7E0DE;
   --abst:#5A6B7D; --abst-soft:#E3E8ED;
   --nombre:#4E6FA8; --texte:#7355A0; --booleen:#8A6D3B; --anomalie:#B33A34;
-  --liste:#2F7F70; --objet:#9A5B2E; --quelconque:#6B7986;
+  --liste:#2A7265; --objet:#9A5B2E; --quelconque:#5C6873;
   --shadow:0 1px 2px rgba(16,22,29,.06),0 4px 12px rgba(16,22,29,.05);
   --shadow-fort:0 2px 6px rgba(16,22,29,.10),0 16px 40px rgba(16,22,29,.14);
   --voile:rgba(16,22,29,.34);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --ground:#0B1117; --surface:#131B23; --surface-2:#18222B; --surface-3:#22303B;
-  --ink:#E4E9EE; --ink-2:#A9B6C2; --ink-3:#7A8996;
+  --ink:#E4E9EE; --ink-2:#A9B6C2; --ink-3:#8B98A4;
   --line:#25323D; --line-2:#33434F; --grid:#18222B; --grid-fort:#1E2A34;
   --accent:#35C6D4; --accent-soft:#0E3A40; --accent-ink:#7FDDE7;
+  --sur-teinte:#08131A;
   --ok:#4BB183; --ok-soft:#12332A; --warn:#D8A33F; --warn-soft:#3A2F14;
   --crit:#E0645C; --crit-soft:#3B1E1C; --abst:#8497A8; --abst-soft:#1D2833;
   --nombre:#7FA0DC; --texte:#A98CD8; --booleen:#C4A465; --anomalie:#E0645C;
@@ -40,9 +44,10 @@
 }}
 :root[data-theme="dark"]{
   --ground:#0B1117; --surface:#131B23; --surface-2:#18222B; --surface-3:#22303B;
-  --ink:#E4E9EE; --ink-2:#A9B6C2; --ink-3:#7A8996;
+  --ink:#E4E9EE; --ink-2:#A9B6C2; --ink-3:#8B98A4;
   --line:#25323D; --line-2:#33434F; --grid:#18222B; --grid-fort:#1E2A34;
   --accent:#35C6D4; --accent-soft:#0E3A40; --accent-ink:#7FDDE7;
+  --sur-teinte:#08131A;
   --ok:#4BB183; --ok-soft:#12332A; --warn:#D8A33F; --warn-soft:#3A2F14;
   --crit:#E0645C; --crit-soft:#3B1E1C; --abst:#8497A8; --abst-soft:#1D2833;
   --nombre:#7FA0DC; --texte:#A98CD8; --booleen:#C4A465; --anomalie:#E0645C;
@@ -74,8 +79,8 @@ button{cursor:pointer; background:none; border:0; padding:0}
   border:1px solid var(--line-2); background:var(--surface-2); font-size:12.5px; font-weight:600;
   white-space:nowrap; transition:border-color .12s,background .12s,color .12s}
 .btn:hover:not(:disabled){border-color:var(--accent); color:var(--accent-ink); background:var(--accent-soft)}
-.btn.primary{background:var(--accent); border-color:var(--accent); color:#fff}
-.btn.primary:hover:not(:disabled){filter:brightness(1.1); color:#fff; background:var(--accent)}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:var(--sur-teinte)}
+.btn.primary:hover:not(:disabled){filter:brightness(1.09); color:var(--sur-teinte); background:var(--accent)}
 .btn.plat{border-color:transparent; background:transparent}
 .btn.plat:hover:not(:disabled){background:var(--surface-2); border-color:var(--line)}
 .btn:disabled{opacity:.4; cursor:default}
@@ -94,7 +99,7 @@ button{cursor:pointer; background:none; border:0; padding:0}
 .bar .sep{width:1px; height:20px; background:var(--line); margin:0 3px}
 .marque{display:flex; align-items:center; gap:8px; padding-right:4px}
 .marque .logo{width:22px; height:22px; border-radius:5px; background:var(--accent);
-  display:grid; place-items:center; color:#fff; font-weight:700; font-size:12px;
+  display:grid; place-items:center; color:var(--sur-teinte); font-weight:700; font-size:12px;
   font-family:"IBM Plex Mono",monospace}
 .etat-doc{font-size:11px; color:var(--ink-3); font-family:"IBM Plex Mono",monospace; white-space:nowrap}
 
@@ -119,11 +124,11 @@ button{cursor:pointer; background:none; border:0; padding:0}
 .ongl button:hover{color:var(--ink-2); background:var(--surface-3)}
 .ongl button.on{color:var(--accent-ink); border-bottom-color:var(--accent); background:var(--surface)}
 .pastille-n{min-width:16px; height:16px; padding:0 4px; border-radius:8px; font-size:9.5px;
-  display:inline-grid; place-items:center; background:var(--line-2); color:var(--surface);
+  display:inline-grid; place-items:center; background:var(--surface-3); color:var(--ink-2);
   font-family:"IBM Plex Mono",monospace; font-weight:700}
-.pastille-n.crit{background:var(--crit); color:#fff}
-.pastille-n.warn{background:var(--warn); color:#fff}
-.pastille-n.ok{background:var(--ok); color:#fff}
+.pastille-n.crit{background:var(--crit); color:var(--sur-teinte)}
+.pastille-n.warn{background:var(--warn); color:var(--sur-teinte)}
+.pastille-n.ok{background:var(--ok); color:var(--sur-teinte)}
 .vue{display:none; overflow-y:auto; padding:12px; flex:1; min-height:0}
 .vue.on{display:block}
 .vue.plein{padding:0; overflow:hidden}
@@ -146,7 +151,7 @@ button{cursor:pointer; background:none; border:0; padding:0}
 .pal button.item:hover{border-color:var(--line-2); background:var(--surface-2)}
 .pal button.item[draggable="true"]{cursor:grab}
 .pal .ic{width:22px; height:22px; border-radius:5px; display:grid; place-items:center;
-  font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:700; color:#fff; flex:none}
+  font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:700; color:var(--sur-teinte); flex:none}
 .pal small{display:block; font-size:10.5px; color:var(--ink-3); font-weight:400; line-height:1.35; margin-top:1px}
 
 /* ── canevas ─────────────────────────────────────────────── */
@@ -197,7 +202,7 @@ button{cursor:pointer; background:none; border:0; padding:0}
 .bloc.court .pastille{background:none; border:2px solid var(--accent-soft);
   border-top-color:var(--accent); animation:tourne .62s linear infinite}
 .bloc .file-n{position:absolute; top:-8px; right:-8px; min-width:18px; height:18px; padding:0 5px;
-  border-radius:9px; background:var(--warn); color:#fff; font-size:10px; font-weight:700;
+  border-radius:9px; background:var(--warn); color:var(--sur-teinte); font-size:10px; font-weight:700;
   font-family:"IBM Plex Mono",monospace; display:grid; place-items:center; box-shadow:var(--shadow)}
 .bloc .ruban{position:absolute; left:-5px; right:-1.5px; bottom:-1.5px; height:2.5px;
   border-radius:0 0 5px 5px; background:var(--accent); transform-origin:left; }
@@ -234,7 +239,7 @@ button{cursor:pointer; background:none; border:0; padding:0}
 .transport .rond{width:30px; height:30px; border-radius:50%; display:grid; place-items:center;
   border:1px solid var(--line-2); background:var(--surface-2)}
 .transport .rond:hover:not(:disabled){border-color:var(--accent); background:var(--accent-soft); color:var(--accent-ink)}
-.transport .rond.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+.transport .rond.primary{background:var(--accent); border-color:var(--accent); color:var(--sur-teinte)}
 .transport .rond.primary:hover{filter:brightness(1.1)}
 .transport .rond:disabled{opacity:.35; cursor:default}
 .transport .horloge{font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-weight:600;
@@ -266,12 +271,20 @@ button{cursor:pointer; background:none; border:0; padding:0}
 .champ .aide code{background:var(--surface-3); padding:0 3px; border-radius:2px;
   font-family:"IBM Plex Mono",monospace; font-size:10px}
 .champ .msg-err{font-size:10.5px; color:var(--crit); margin-top:3px; font-family:"IBM Plex Mono",monospace}
+/* Une bague de la couleur de l'accent posée sur une pastille de couleur peut se
+   confondre avec elle. La marque de sélection est donc une coche, dans l'encre
+   prévue pour les aplats, doublée d'une bague en dehors de la pastille. */
+.pastilles-couleur{display:flex; gap:9px; padding:2px}
+.pastilles-couleur button{flex:1; height:26px; border-radius:5px; cursor:pointer; border:0;
+  display:grid; place-items:center; color:var(--sur-teinte); font-size:13px; font-weight:700;
+  line-height:1; outline:1px solid rgba(128,128,128,.35); outline-offset:-1px}
+.pastilles-couleur button.on{outline:2px solid var(--ink); outline-offset:2px}
 .grille2{display:grid; grid-template-columns:1fr 1fr; gap:8px}
 .rang{display:flex; gap:6px}
 .rang .btn{flex:1; justify-content:center}
 .enttete{display:flex; align-items:center; gap:7px; padding:9px 11px; background:var(--surface-2);
   border:1px solid var(--line); border-radius:7px; margin-bottom:11px}
-.enttete .ic{width:26px; height:26px; border-radius:6px; display:grid; place-items:center; color:#fff;
+.enttete .ic{width:26px; height:26px; border-radius:6px; display:grid; place-items:center; color:var(--sur-teinte);
   font-family:"IBM Plex Mono",monospace; font-weight:700; font-size:12px; flex:none}
 .enttete .t{font-weight:600; font-size:13px; line-height:1.2}
 .enttete .s{font-size:10.5px; color:var(--ink-3)}
@@ -366,7 +379,7 @@ table.tb td.num{font-family:"IBM Plex Mono",monospace; text-align:right; white-s
   font-family:"IBM Plex Mono",monospace; font-weight:700}
 .cmd-item .gr{font-size:10.5px; color:var(--ink-3)}
 .cmd-item.on{background:var(--accent-soft); color:var(--accent-ink)}
-.cmd-item.on .ic{background:var(--accent); color:#fff}
+.cmd-item.on .ic{background:var(--accent); color:var(--sur-teinte)}
 
 /* ── chronologie ─────────────────────────────────────────── */
 .chrono{overflow:auto; height:100%; padding:9px}
@@ -391,8 +404,8 @@ table.tb td.num{font-family:"IBM Plex Mono",monospace; text-align:right; white-s
   font-weight:500; box-shadow:var(--shadow-fort); display:flex; align-items:center; gap:9px;
   opacity:0; pointer-events:none; transition:opacity .18s,transform .18s}
 .pain.on{opacity:1; transform:translateX(-50%) translateY(0)}
-.pain.err{background:var(--crit); color:#fff}
-.pain.ok{background:var(--ok); color:#fff}
+.pain.err{background:var(--crit); color:var(--sur-teinte)}
+.pain.ok{background:var(--ok); color:var(--sur-teinte)}
 
 .poignee{grid-column:2; grid-row:2; height:5px; cursor:ns-resize; background:transparent; margin-top:-3px; z-index:11}
 .poignee:hover{background:var(--accent-soft)}
@@ -3536,8 +3549,12 @@ function nouvelleZone(x, y){
   (M.zones ??= []).push(z); return z;
 }
 
-const TEINTES = [["#4E6FA8","#7FA0DC"],["#7355A0","#A98CD8"],["#0E7C86","#35C6D4"],
-                 ["#A8478A","#DC80BE"],["#8A6D3B","#C4A465"],["#3E7F9C","#79B8D4"]];
+/* Chaque teinte a deux variantes : claire du thème clair (texte sombre sur fond
+   pâle), claire du thème sombre. Les valeurs du thème clair ont été assombries
+   pour dépasser 4,5:1 sur le fond du canevas — elles servent aussi de couleur au
+   titre de la section, pas seulement de bordure. */
+const TEINTES = [["#4B6BA1","#7FA0DC"],["#7355A0","#A98CD8"],["#0D767F","#35C6D4"],
+                 ["#A8478A","#DC80BE"],["#826637","#C4A465"],["#37718B","#79B8D4"]];
 const sombre = () => document.documentElement.getAttribute("data-theme") === "dark" ||
   (!document.documentElement.getAttribute("data-theme") && matchMedia("(prefers-color-scheme: dark)").matches);
 const teinte = i => TEINTES[i % TEINTES.length][sombre() ? 1 : 0];
@@ -4231,9 +4248,10 @@ function inspecteur(){
         <div><div class="t">Encadré de section</div><div class="s">Purement documentaire</div></div></div>
       <div class="champ"><label>Titre</label><input id="z-nom" value="${ech(z.nom)}"></div>
       <div class="champ"><label>Couleur</label>
-        <div style="display:flex;gap:5px">${TEINTES.map((_, i) =>
-          `<button data-t="${i}" style="flex:1;height:26px;border-radius:5px;cursor:pointer;
-            border:2px solid ${i === z.teinte ? "var(--accent)" : "transparent"};background:${teinte(i)}"></button>`).join("")}</div></div>
+        <div class="pastilles-couleur">${TEINTES.map((_, i) =>
+          `<button data-t="${i}" class="${i === z.teinte ? "on" : ""}" title="Couleur ${i + 1}"
+            aria-pressed="${i === z.teinte}"
+            style="background:${teinte(i)}">${i === z.teinte ? "✓" : ""}</button>`).join("")}</div></div>
       <div class="grille2">
         <div class="champ"><label>Largeur</label><input id="z-w" type="number" value="${z.w}"></div>
         <div class="champ"><label>Hauteur</label><input id="z-h" type="number" value="${z.h}"></div>
@@ -5197,9 +5215,9 @@ function rendForge(){
     </div>
     <div class="champ"><label>Ce qu'il fait</label><input id="fg-aide" value="${ech(d.aide)}"></div>
     <div class="champ"><label>Couleur</label>
-      <div style="display:flex;gap:5px">${couleurs.map(c =>
-        `<button data-coul="${c}" style="flex:1;height:24px;border-radius:5px;cursor:pointer;
-          border:2px solid ${c === d.coul ? "var(--ink)" : "transparent"};background:${c}"></button>`).join("")}</div></div>
+      <div class="pastilles-couleur">${couleurs.map(c =>
+        `<button data-coul="${c}" class="${c === d.coul ? "on" : ""}" aria-pressed="${c === d.coul}"
+          style="background:${c}">${c === d.coul ? "✓" : ""}</button>`).join("")}</div></div>
     <div class="grille2">
       <div class="champ"><label>Ports d'entrée</label><input id="fg-e" value="${ech(d.entrees.join(", "))}"
         placeholder="x, y"><div class="aide">Séparés par des virgules. Ces noms deviennent des variables dans le code.</div></div>
