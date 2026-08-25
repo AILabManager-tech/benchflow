@@ -60,6 +60,17 @@ Si l'anglais revient un jour, ce ne sera pas en renommant le modèle mais en
 séparant *identifiant stable* et *libellé affiché*, avec une version de format et
 des tests de compatibilité. Ça n'a rien à voir avec une session de traduction.
 
+**7. Nom public : `pipeline-simulation-workbench`.**
+Décidé le 2026-08-25. C'est le nom du **dépôt** — descriptif, cherchable,
+compréhensible sans parler français, ce qui compense une interface qui, elle,
+reste francophone.
+
+Le dossier local reste `atelier-blocs`, le fichier reste `atelier.html`, et le
+titre affiché reste « Atelier de blocs ». **Ne les renomme pas pour « aligner » :**
+le lanceur `~/.local/bin/atelier-blocs` et l'entrée `.desktop` pointent dessus et
+vivent hors du dépôt. Un dépôt peut porter un autre nom que son dossier de
+travail, ça n'a jamais gêné personne.
+
 ## Défaut connu, non corrigé
 
 **Le déterminisme ne tient pas pour le code écrit par l'utilisateur.** Un bloc
