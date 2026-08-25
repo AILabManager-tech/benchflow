@@ -9,8 +9,7 @@ sans le casser.
 
 **1. Un seul fichier, zéro dépendance.**
 `atelier.html` se suffit à lui-même et s'ouvre hors ligne. Pas de `package.json`,
-pas de bundler, pas de `npm install`, pas de CDN (l'unique exception est Google
-Fonts, qui dégrade proprement). Découper en modules détruirait la propriété
+pas de bundler, pas de `npm install`, aucune requête réseau — le fichier n'en fait plus une seule. Découper en modules détruirait la propriété
 centrale du projet. Si tu penses qu'il faut un build, dis-le et attends la
 réponse — ne le fais pas.
 
@@ -44,6 +43,40 @@ lieu d'une garantie.
 Tout le hasard vient d'une graine (`mulberry32`). Même graine, même exécution.
 N'introduis jamais `Math.random()`, `Date.now()` ni l'ordre d'itération d'un `Set`
 dans un chemin d'exécution du moteur.
+
+**6. Le français fait partie du protocole, pas de l'habillage.**
+Les noms de ports — `refus`, `réparé`, `épuisé`, `voie 1` — sont des
+identifiants. Ils sont **sérialisés dans les montages enregistrés** (`l.de.p`) et
+servent à rebrancher les fils à l'ouverture. Les traduire n'est pas une
+traduction : c'est une migration de format de fichier, qui rebrancherait par
+position tous les montages existants — exactement le défaut silencieux que le
+diagnostic « un fil a changé de port » existe pour attraper.
+
+Décision prise le 2026-08-25 : **le projet reste francophone**. Interface, code,
+diagnostics, exemples, commits. Ce n'est pas un manque, c'est un choix assumé, à
+annoncer dans le README.
+
+Si l'anglais revient un jour, ce ne sera pas en renommant le modèle mais en
+séparant *identifiant stable* et *libellé affiché*, avec une version de format et
+des tests de compatibilité. Ça n'a rien à voir avec une session de traduction.
+
+## Défaut connu, non corrigé
+
+**Le déterminisme ne tient pas pour le code écrit par l'utilisateur.** Un bloc
+Script ou un bloc forgé peut appeler `Math.random()` ou `Date.now()` directement,
+et la garantie « même graine, même exécution » saute — sans un mot, ce que le
+principe 3 interdit. Reproduit :
+
+```
+Script « return Math.round(Math.random()*1000) », même graine 7
+  exécution 1 : 890      exécution 2 : 880
+Script « return Math.round(hasard()*1000) », même graine 7
+  identiques ✓
+```
+
+Conséquence : un scénario bâti sur un tel bloc devient instable en silence.
+Le correctif tient en quelques lignes — masquer `Math` et `Date` dans la portée
+du code utilisateur, en laissant `hasard()` comme seule source d'aléa.
 
 ## Vérifier — les quatre boucles
 
