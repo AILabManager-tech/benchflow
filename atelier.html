@@ -3929,7 +3929,12 @@ let tirage = null;
 function dessine(){
   scene.querySelectorAll(".bloc,.zone-s").forEach(e => e.remove());
 
-  (M.zones || []).forEach(z => {
+  /* Du plus grand au plus petit : le dernier peint reçoit le clic, donc c'est le
+     plus petit encadré qui l'emporte — exactement la règle qui décide déjà de
+     l'appartenance d'un bloc (sectionDuBloc). Peints dans l'ordre de création,
+     un encadré neuf posé par-dessus un ancien rendait l'ancien inatteignable :
+     ni déplaçable, ni sélectionnable, ni supprimable, sans un mot. */
+  [...(M.zones || [])].sort((a, b) => b.w * b.h - a.w * a.h).forEach(z => {
     const c = teinte(z.teinte);
     const el = document.createElement("div");
     el.className = "zone-s" + (selZone === z.id ? " sel" : ""); el.id = "Z" + z.id;
@@ -4550,7 +4555,15 @@ function dessinePalette(){
       const x = (r.width / 2 - vue.x) / vue.z, y = (r.height / 2 - vue.y) / vue.z;
       modifie(() => {
         deselectionne();
-        if (c === "__zone"){ selZone = nouvelleZone(x - 220, y - 150).id; }
+        /* En cascade, et non au hasard comme un bloc : deux encadrés ont la
+           même taille, donc l'ordre de peinture ne peut pas les départager.
+           Deux clics de suite les posaient au pixel près l'un sur l'autre et
+           celui du dessous devenait impossible à rattraper. 36 px laissent une
+           prise franche et son titre entièrement visible. */
+        if (c === "__zone"){
+          const d = 36 * ((M.zones || []).length % 6);
+          selZone = nouvelleZone(x - 220 + d, y - 150 + d).id;
+        }
         else {
           const nb_ = nouveauBloc(c, aligne(x - P_BLOC.w / 2 + (Math.random() * 60 - 30)),
                                      aligne(y - 36 + (Math.random() * 60 - 30)));
