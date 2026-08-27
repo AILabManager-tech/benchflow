@@ -112,7 +112,10 @@ try { console.log(JSON.stringify(JSON.parse(v), null, 1)); } catch(e){ console.l
    signalé quoi que ce soit, ou si le script d'inspection a levé. */
 /* La page elle-même est la seule requête légitime : tout le reste est un
    chargement distant, donc une violation. */
-const distantes = reseau.filter(u => u !== PAGE && !u.startsWith("data:"));
+/* Les extensions du navigateur émettent leurs propres requêtes : ce n'est
+   pas la page, et l'en accuser ferait crier le contrôle pour rien. */
+const distantes = reseau.filter(u => u !== PAGE && !u.startsWith("data:")
+                                  && !u.startsWith("chrome-extension://"));
 console.log("── réseau ──");
 console.log(distantes.length
   ? distantes.map(u => "  ✗ " + u).join("\n")
