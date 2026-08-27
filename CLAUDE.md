@@ -70,9 +70,13 @@ du dépôt, là où une recherche va effectivement la chercher.
 
 Ce qui **ne** change pas, et qu'il ne faut pas « aligner » :
 
-- Le dossier `atelier-blocs`, le fichier `atelier.html`. Le lanceur
-  `~/.local/bin/atelier-blocs` et l'entrée `.desktop` pointent dessus et vivent
-  hors du dépôt : les renommer les casse.
+- Le dossier `atelier-blocs`, le fichier `atelier.html`, le script
+  `~/.local/bin/atelier-blocs` et le nom de fichier `atelier-blocs.desktop`.
+  Ce sont des chemins, pas des libellés : les renommer casse l'entrée de menu,
+  et `StartupWMClass=atelier-blocs` doit rester accordé au `--class` du lanceur.
+  Le nom **affiché** par le menu, lui, est passé à FlowBench (2026-08-27), et
+  `~/.local/bin/flowbench` est un lien vers le script — les deux commandes
+  marchent.
 - Les clés de stockage `atelier2`, `atelier-theme`, `atelier`, le type de glisser
   `text/atelier`, le symbole `atelier.anomalie`. Ce sont des identifiants, pas
   des libellés. Renommer une clé de stockage efface sans le dire le montage et le
@@ -84,9 +88,6 @@ L'extension d'enregistrement passe en revanche de `.atelier.json` à
 `.flowbench.json` : elle n'a aucun rôle à l'ouverture, où le filtre est `.json`,
 donc les fichiers déjà sur le disque s'ouvrent toujours.
 
-**Reste désaccordée, sciemment :** l'entrée du menu d'applications affiche
-encore « Atelier de blocs ». Le `.desktop` est hors du dépôt et sa modification
-demande un accord explicite.
 
 ## Déterminisme — ce qu'il couvre exactement
 

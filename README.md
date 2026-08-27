@@ -15,9 +15,8 @@ Un seul fichier HTML. Aucune dépendance. Ouvrable hors ligne, pour toujours.
 
 ## Lancer
 
-- l'icône **Atelier de blocs** dans le menu d'applications — l'entrée `.desktop`
-  vit hors du dépôt et porte encore l'ancien nom, ou
-- `atelier-blocs` au terminal, ou
+- l'icône **FlowBench** dans le menu d'applications, ou
+- `flowbench` au terminal, ou
 - ouvrir `atelier.html` dans un navigateur.
 
 Le lanceur ouvre une fenêtre d'application sans barre d'adresse, avec son propre profil de
