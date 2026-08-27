@@ -1,4 +1,4 @@
-# CLAUDE.md — FlowBench
+# CLAUDE.md — BenchFlow
 
 Simulateur de pipelines en **un seul fichier HTML**. On monte un schéma-bloc, on
 l'exécute, des valeurs typées le traversent pendant qu'une horloge simulée avance.
@@ -60,13 +60,25 @@ Si l'anglais revient un jour, ce ne sera pas en renommant le modèle mais en
 séparant *identifiant stable* et *libellé affiché*, avec une version de format et
 des tests de compatibilité. Ça n'a rien à voir avec une session de traduction.
 
-**7. Le produit s'appelle FlowBench.**
-Décidé le 2026-08-26, et ça remplace la décision de la veille : « Atelier de
-blocs » ne doit plus apparaître nulle part. FlowBench est le nom **affiché** —
-titre de la page, en-tête, README, en-tête des fichiers engendrés. La phrase
-« Pipeline simulation workbench — interface en français » n'est pas un nom, c'est
-la description : sa place est le sous-titre du README et la ligne de description
-du dépôt, là où une recherche va effectivement la chercher.
+**7. Le produit s'appelle BenchFlow.**
+Décidé le 2026-08-27. Ça remplace « Atelier de blocs » (qui ne doit plus
+apparaître nulle part) et le FlowBench de la veille. BenchFlow est le nom
+**affiché** — titre de la page, en-tête, README, en-tête des fichiers engendrés.
+
+**L'homonymie avec le projet BenchFlow de l'USI est connue et assumée.**
+`github.com/benchflow/benchflow` est un banc d'essai pour moteurs de workflow
+BPMN 2.0, publié à ACM/SPEC. Le nom a été retenu **en sachant ça** : sortir en
+deuxième ou troisième position sur une requête fréquentée vaut mieux, pour le
+propriétaire, que sortir premier sur une requête vide. Ce n'est ni une
+négligence ni un oubli de recherche préalable — **ne le « corrige » pas** et ne
+repropose pas FlowBench : l'argument inverse a été présenté au complet le
+2026-08-27 et écarté en connaissance de cause.
+
+Conséquence pratique : c'est la **description** qui doit désambiguïser, puisque
+le nom ne le fait pas. Le sous-titre du README et la ligne de description du
+dépôt doivent dire en une ligne que ce n'est pas un banc de mesure BPMN. Un
+visiteur arrivé par erreur décide en trois secondes ; cette ligne est tout ce
+qu'il lit.
 
 Ce qui **ne** change pas, et qu'il ne faut pas « aligner » :
 
@@ -74,8 +86,8 @@ Ce qui **ne** change pas, et qu'il ne faut pas « aligner » :
   `~/.local/bin/atelier-blocs` et le nom de fichier `atelier-blocs.desktop`.
   Ce sont des chemins, pas des libellés : les renommer casse l'entrée de menu,
   et `StartupWMClass=atelier-blocs` doit rester accordé au `--class` du lanceur.
-  Le nom **affiché** par le menu, lui, est passé à FlowBench (2026-08-27), et
-  `~/.local/bin/flowbench` est un lien vers le script — les deux commandes
+  Le nom **affiché** par le menu, lui, est passé à BenchFlow (2026-08-27), et
+  `~/.local/bin/benchflow` est un lien vers le script — les deux commandes
   marchent.
 - Les clés de stockage `atelier2`, `atelier-theme`, `atelier`, le type de glisser
   `text/atelier`, le symbole `atelier.anomalie`. Ce sont des identifiants, pas
@@ -85,7 +97,7 @@ Ce qui **ne** change pas, et qu'il ne faut pas « aligner » :
   redit sur place.
 
 L'extension d'enregistrement passe en revanche de `.atelier.json` à
-`.flowbench.json` : elle n'a aucun rôle à l'ouverture, où le filtre est `.json`,
+`.benchflow.json` : elle n'a aucun rôle à l'ouverture, où le filtre est `.json`,
 donc les fichiers déjà sur le disque s'ouvrent toujours.
 
 
@@ -152,7 +164,7 @@ vérifier — c'est voulu, remets le motif à jour.
 
 - Le lanceur `~/.local/bin/atelier-blocs` et l'entrée `.desktop` sont **hors du
   dossier** et pointent sur `atelier.html`. Renommer le fichier les casse.
-- FlowBench restaure le montage sauvegardé au démarrage : après un changement
+- BenchFlow restaure le montage sauvegardé au démarrage : après un changement
   d'exemple par défaut, il faut vider `localStorage` ou charger l'exemple à la
   main pour le voir.
 - `zsh` analyse toute la ligne avant de l'exécuter : une apostrophe non fermée

@@ -1,6 +1,11 @@
-# FlowBench
+# BenchFlow
 
-*Pipeline simulation workbench — interface en français.*
+*Simulateur de pipelines : on monte un schéma-bloc, on l'exécute, et on regarde les
+valeurs le traverser. Un seul fichier HTML, aucune dépendance, interface en français.*
+
+> **À ne pas confondre** avec [BenchFlow](https://github.com/benchflow/benchflow), le banc
+> d'essai de moteurs de workflow BPMN 2.0 de l'USI. Même nom, autre outil : ici on **conçoit
+> et simule** un pipeline, on ne mesure pas les performances d'un moteur d'exécution.
 
 Un bac à sable pour **concevoir un pipeline, puis le faire tourner**. On pose des blocs,
 on tire des fils, on donne une fonction à chacun — et des valeurs typées traversent le
@@ -16,8 +21,8 @@ Un seul fichier HTML. Aucune dépendance. Ouvrable hors ligne, pour toujours.
 > ### ⚠ Un montage est du code, pas un document
 >
 > Les expressions des blocs et le corps des blocs forgés sont du **JavaScript, exécuté
-> tel quel** dès qu'on appuie sur Exécuter. C'est tout l'intérêt de FlowBench — et ça veut
-> dire qu'**ouvrir un `.flowbench.json` reçu de quelqu'un revient à lancer son code**.
+> tel quel** dès qu'on appuie sur Exécuter. C'est tout l'intérêt de BenchFlow — et ça veut
+> dire qu'**ouvrir un `.benchflow.json` reçu de quelqu'un revient à lancer son code**.
 >
 > Traite un montage venu d'ailleurs comme tu traiterais un script : lis-le avant. Le
 > panneau **Code engendré**, onglet *Montage brut*, montre le contenu exact d'un fichier
@@ -27,8 +32,8 @@ Un seul fichier HTML. Aucune dépendance. Ouvrable hors ligne, pour toujours.
 
 ## Lancer
 
-- l'icône **FlowBench** dans le menu d'applications, ou
-- `flowbench` au terminal, ou
+- l'icône **BenchFlow** dans le menu d'applications, ou
+- `benchflow` au terminal, ou
 - ouvrir `atelier.html` dans un navigateur.
 
 Le lanceur ouvre une fenêtre d'application sans barre d'adresse, avec son propre profil de
@@ -68,7 +73,7 @@ fermé, c'est l'accident — le seul cas qui se produit vraiment.
 | Fiabilité | Réparer (budget + usure + backoff), Disjoncteur, Aléa de panne, Refuser |
 | Sortie | Sortie, Rebut, Assertion, Sonde |
 
-À l'ouverture, FlowBench charge le **traitement des commandes d'une boutique en ligne**.
+À l'ouverture, BenchFlow charge le **traitement des commandes d'une boutique en ligne**.
 Ce ne sont pas des entiers déguisés : dix vraies lignes de commande entrent par un jeu de
 données CSV, chaque bloc lit des champs qui existent — quantité, prix unitaire, pays — et
 applique une règle qu'on pourrait défendre en réunion. Une quantité de 0 ou de 40 est
@@ -136,7 +141,7 @@ Les cinq montages d'exemple livrés viennent avec leurs scénarios, tous verts.
 - **JavaScript** — un fichier autonome qui embarque le moteur et les fonctions
   réellement exécutées, obtenues par `Function.toString`. Ce qui tourne dans la page et
   ce qui tourne dans le fichier sont le *même code* : aucune dérive possible.
-  `node montage.js` donne exactement le même journal que FlowBench.
+  `node montage.js` donne exactement le même journal que BenchFlow.
 - **Python** — traduction fidèle du **flux** : mêmes blocs, mêmes ports, mêmes règles de
   propagation des anomalies. Les expressions JavaScript passent par un traducteur restreint
   qui échoue bruyamment plutôt que d'inventer.
@@ -148,7 +153,7 @@ Les cinq montages d'exemple livrés viennent avec leurs scénarios, tous verts.
   |---|---|
   | **L'horloge simulée** | Ni latence, ni gigue, ni file d'attente, ni débit, ni coût, ni traitements simultanés. Des cinq réglages avancés, seul le **taux de panne** traverse. Un montage Python dit *ce qui sort*, jamais *combien de temps ça prend*. |
   | **Les blocs Script** | Leur corps reste du JavaScript. Le fichier Python lève une erreur nommant le bloc, au lieu de deviner. |
-  | **Les blocs forgés** | Pareil, et pour la même raison. À réécrire en Python, ou à garder dans FlowBench. |
+  | **Les blocs forgés** | Pareil, et pour la même raison. À réécrire en Python, ou à garder dans BenchFlow. |
   | **Les scénarios** | Ils ne sont pas exportés. Les blocs **Assertion** posés dans le flux, eux, traversent et rapportent leurs résultats. |
 - **schema.json** pour la skill `/blocs`, **Mermaid**, et le montage brut.
 
