@@ -95,6 +95,8 @@ body{margin:0; background:var(--ground); color:var(--ink); overflow:hidden;
 h1{margin:0; font-size:15px; font-weight:600; letter-spacing:-.012em; white-space:nowrap}
 button,select,input,textarea{font:inherit; color:inherit}
 button{cursor:pointer; background:none; border:0; padding:0}
+.version{font:600 10.5px/1 var(--mono); color:var(--ink-3); letter-spacing:.02em; white-space:nowrap;
+  padding:2.5px 5px; border:1px solid var(--line-2); border-radius:4px; margin-left:7px}
 :focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:4px}
 /* Les champs remplacent l'anneau par une bordure + un halo au :focus — assez
    à la souris, trop discret au clavier, où le focus est la seule position
@@ -136,15 +138,26 @@ button{cursor:pointer; background:none; border:0; padding:0}
   background:var(--surface-3); color:var(--ink-3); border:1px solid var(--line); font-weight:600}
 
 /* ── charpente ───────────────────────────────────────────── */
-.app{display:grid; grid-template-rows:auto 1fr; height:100%}
+.app{display:grid; grid-template-rows:auto 1fr; grid-template-columns:minmax(0,1fr);
+  height:100%; overflow:hidden}
 .bar{display:flex; align-items:center; gap:7px; padding:8px 12px; background:var(--surface);
-  border-bottom:1px solid var(--bloc-bord); z-index:20}
+  border-bottom:1px solid var(--bloc-bord); z-index:20; min-width:0;
+  /* Sous ~1250 px la barre ne tient plus. Elle défile plutôt que de rogner :
+     un bouton hors de l'écran est un bouton perdu, sans que rien le dise.
+     La barre de défilement est masquée — le geste reste, le bruit part. */
+  overflow-x:auto; overflow-y:hidden; scrollbar-width:none}
+.bar::-webkit-scrollbar{display:none}
+/* Les commandes gardent leur taille ; c'est le titre du montage qui cède, avec
+   des points de suspension. Un bouton illisible ne sert personne, un titre
+   coupé se relit dans le panneau du montage. */
+.bar > *{flex-shrink:0}
 .bar .sep{width:1px; height:20px; background:var(--line); margin:0 3px}
 .marque{display:flex; align-items:center; gap:8px; padding-right:4px}
 .marque .logo{width:22px; height:22px; border-radius:5px; background:var(--accent);
   display:grid; place-items:center; color:var(--sur-teinte); font-weight:700; font-size:12px;
   font-family:var(--mono)}
-.etat-doc{font-size:11px; color:var(--ink-3); font-family:var(--mono); white-space:nowrap}
+.etat-doc{font-size:11px; color:var(--ink-3); font-family:var(--mono); white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis; min-width:0; flex-shrink:1}
 
 .main{display:grid; grid-template-columns:236px minmax(0,1fr) 336px;
   grid-template-rows:minmax(0,1fr) auto auto; overflow:hidden; min-height:0}
@@ -490,7 +503,7 @@ table.tb td.num{font-family:var(--mono); text-align:right; white-space:nowrap}
 
 <!-- ══ barre haute ══════════════════════════════════════════════ -->
 <div class="bar">
-  <div class="marque"><span class="logo">◧</span><h1>BenchFlow</h1></div>
+  <div class="marque"><span class="logo">◧</span><h1>BenchFlow</h1><span class="version" id="version"></span></div>
   <span class="etat-doc" id="etat-doc">—</span>
   <span class="sep"></span>
   <button class="btn plat" id="b-annuler" title="Annuler (Ctrl+Z)">
@@ -1711,6 +1724,10 @@ function compDe(comp){
    ─────────────────────────────────────────────────────────────────────────── */
 
 const VERSION_FORMAT = 2;
+/* Version du PRODUIT, à ne pas confondre avec VERSION_FORMAT ci-dessus, qui
+   versionne le format des montages enregistrés. Les deux bougent séparément :
+   une version de produit peut sortir sans toucher au format des fichiers. */
+const VERSION = "0.1.0-alpha";
 
 function montageVide(){
   return { version: VERSION_FORMAT, titre: "Montage sans titre", etage: 0,
@@ -2560,6 +2577,7 @@ function sourceNoyau(){
   bouts.push(`const TYPES_SIMPLES = ${JSON.stringify(TYPES_SIMPLES)};`);
   bouts.push(`const NOM_PORT = ${NOM_PORT.toString()};`);
   bouts.push(`const LIMITES = ${JSON.stringify(LIMITES)};`);
+  bouts.push(`const VERSION = ${JSON.stringify(VERSION)};`);
   bouts.push(`const CACHE_MAX = ${CACHE_MAX};`);
   bouts.push(`const _cacheExpr = new Map();`);
   bouts.push(`const _cacheCorps = new Map();`);
@@ -2588,7 +2606,7 @@ function engendreJS(M, opts){
 "use strict";
 /* ═══════════════════════════════════════════════════════════════════════════
    « ${(M.titre || "Montage").replace(/\*\//g, "*∕")} »
-   Engendré par BenchFlow.
+   Engendré par BenchFlow ${VERSION}.
 
    Ce fichier n'est pas une esquisse : il contient le moteur d'exécution et les
    fonctions de chaque comportement, repris tels quels de BenchFlow. Lance-le :
@@ -2892,7 +2910,7 @@ function engendrePython(M){
 
   return `#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""« ${(M.titre || "Montage").replace(/"/g, "'")} » — engendré par BenchFlow.
+"""« ${(M.titre || "Montage").replace(/"/g, "'")} » — engendré par BenchFlow ${VERSION}.
 
 Traduction fidèle du FLUX : mêmes blocs, mêmes ports, mêmes règles de
 propagation des anomalies. Ce qui ne traverse pas la frontière :
@@ -3668,6 +3686,13 @@ function lancerTests(){
   ok("un montage à hasard s'engendre aussi", (() => {
     try { new Function("module", "require", "process", "console", sansShebang(srcJS2)); return true; } catch(e){ return false; } })());
   ok("le fichier engendré s'annonce", /BenchFlow/.test(srcJS));
+  /* Un fichier engendré doit dire de quelle version il sort : sans ça, un
+     rapport de bogue sur du code exporté ne se rattache à rien. */
+  ok("… avec sa version", srcJS.includes("BenchFlow " + VERSION));
+  ok("… et la version voyage dans le noyau engendré",
+     new RegExp('const VERSION = "' + VERSION + '"').test(srcJS));
+  ok("la version du produit est distincte du format",
+     typeof VERSION === "string" && /^\d+\.\d+\.\d+/.test(VERSION) && typeof VERSION_FORMAT === "number");
   ok("les fonctions du catalogue y sont bien présentes", /"fusionner"/.test(srcJS) && /mode de combinaison inconnu/.test(srcJS));
 
   const Mpy = montageVide();
@@ -6110,6 +6135,8 @@ function tenteMigration(){
 
 /* ── démarrage ───────────────────────────────────────────────────────────── */
 (function demarre(){
+  $("version").textContent = VERSION;
+  $("version").title = `BenchFlow ${VERSION} · format de montage v${VERSION_FORMAT}`;
   const repris = charge() || tenteMigration();
   if (!repris || !M.blocs.length){
     M = EXEMPLES["Commandes d'une boutique en ligne"]();

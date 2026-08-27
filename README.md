@@ -7,6 +7,8 @@ valeurs le traverser. Un seul fichier HTML, aucune dépendance, interface en fra
 > d'essai de moteurs de workflow BPMN 2.0 de l'USI. Même nom, autre outil : ici on **conçoit
 > et simule** un pipeline, on ne mesure pas les performances d'un moteur d'exécution.
 
+![BenchFlow — le montage « Commandes d'une boutique en ligne » à l'ouverture](capture.png)
+
 Un bac à sable pour **concevoir un pipeline, puis le faire tourner**. On pose des blocs,
 on tire des fils, on donne une fonction à chacun — et des valeurs typées traversent le
 montage pendant qu'une horloge simulée avance, que les files se remplissent et que les
@@ -274,10 +276,26 @@ atelier.html    l'application entière — noyau (§0-§11) puis interface (§12
 verifier.mjs    lance les auto-tests du noyau sous Node, hors navigateur
 mutation.mjs    vérifie que ces auto-tests savent devenir rouges
 sonde.mjs       pilote la page dans Chrome headless pour vérifier l'interface
+capture.mjs     refait capture.png et capture-sombre.png à la commande
 CLAUDE.md       invariants du projet, à l'usage d'un agent qui vient y toucher
 README.md       ce fichier
+LICENSE         MIT
 ```
 
-`sonde.mjs` est le seul fichier à demander autre chose que Node — il lui faut
-Chrome. C'est un outil de développement : l'application n'a toujours aucune
-dépendance.
+`sonde.mjs` et `capture.mjs` sont les seuls fichiers à demander autre chose que
+Node — il leur faut Chrome. Ce sont des outils de développement : l'application,
+elle, n'a toujours aucune dépendance.
+
+La capture du README se **régénère** (`node capture.mjs`) plutôt que d'être collée
+une fois pour toutes : une image d'interface qui ne se refait pas se périme sans
+le dire.
+
+## Version et licence
+
+`0.1.0-alpha` — première version publiable. Le numéro s'affiche dans l'en-tête,
+voyage dans chaque fichier engendré, et trois assertions vérifient qu'il y est.
+
+À ne pas confondre avec la **version de format** des montages enregistrés
+(`VERSION_FORMAT`, actuellement 2) : les deux bougent séparément.
+
+Sous licence **MIT** — voir `LICENSE`.
