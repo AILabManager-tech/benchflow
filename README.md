@@ -172,6 +172,36 @@ Les cinq montages d'exemple livrés viennent avec leurs scénarios, tous verts.
 | `Ctrl S` | enregistrer dans un fichier |
 | `?` | aide complète |
 
+## Accessibilité
+
+Ce qui est tenu, et vérifié à chaque passage de `verifier.mjs` :
+
+- **Contraste** — 132 paires de couleurs au-dessus du seuil, dans les deux thèmes :
+  le texte (AA, 4,5:1), les surfaces entre elles (1.4.11, 3:1), et l'anneau de focus
+  contre les quatre fonds qu'il peut rencontrer.
+- **Focus visible** — anneau de 2 px au `:focus-visible` sur tout élément atteignable
+  au clavier. Il a son propre jeton `--focus` parce que la couleur d'accent tombait à
+  2,84:1 contre le canevas ; le contrôle l'a attrapée.
+- **Noms accessibles** — chaque bouton, champ et bascule en a un. Zéro élément anonyme.
+- **Structure** — `<!DOCTYPE html>`, `lang="fr-CA"`, les trois superpositions sont des
+  `role="dialog"` avec `aria-modal`, et les messages passagers un `role="status"`.
+- **`prefers-reduced-motion`** — respecté.
+
+### Limitation connue : la navigation clavier du graphe
+
+**On ne peut pas construire un montage entièrement au clavier.** Poser un bloc, tirer un
+fil, déplacer un encadré : tout ça demande la souris. Le canevas est déclaré
+`role="application"` et le dit dans son libellé.
+
+Ce n'est pas un oubli, c'est un sous-projet : il faudrait un ordre de parcours entre les
+blocs, une façon de désigner un port, une autre de viser sa cible, un modèle de sélection
+au clavier, et l'ensemble reste utilisable au lecteur d'écran. Annoncé plutôt que
+sous-entendu.
+
+Ce qui **est** au clavier : `Ctrl K` ouvre la palette de commandes, et tout ce que fait
+BenchFlow y est atteignable — exécuter, ranger, exporter, changer de thème, charger un
+exemple. Un montage déjà construit s'explore, s'exécute et se rejoue sans souris.
+
 ## Vérification
 
 Le fichier est coupé en deux moitiés par les marqueurs `@noyau:debut` / `@noyau:fin`. Le
@@ -179,7 +209,7 @@ Le fichier est coupé en deux moitiés par les marqueurs `@noyau:debut` / `@noya
 touche jamais au DOM. Il tourne donc tel quel hors du navigateur :
 
 ```
-node verifier.mjs        232 assertions · 124 paires de couleurs au-dessus du
+node verifier.mjs        232 assertions · 132 paires de couleurs au-dessus du
                          seuil de contraste · engendre et exécute les 5 exemples
                          en JavaScript et en Python
 node verifier.mjs -v     détail de chaque assertion
@@ -193,7 +223,7 @@ Réparer manquait côté Python, et que la sérialisation JSON des deux langages
 pas sur `240` contre `240.0`.
 
 Le contrôle de contraste lit les couleurs **dans la feuille de style elle-même** et vérifie
-124 paires des deux thèmes : le texte contre son fond (seuil AA, 4,5:1) **et les surfaces
+132 paires des deux thèmes : le texte contre son fond (seuil AA, 4,5:1) **et les surfaces
 entre elles** (seuil 1.4.11, 3:1) — bordure d'un bloc contre le canevas, corps du bloc
 contre le canevas, trait contre panneau. Les deux axes sont nécessaires : la première
 version passait le contrôle du texte pendant que les blocs se fondaient dans le fond à

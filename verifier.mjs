@@ -42,7 +42,10 @@ function contrasteJetons(){
   };
   const CLAIR  = jetons(page.slice(page.indexOf(":root{"), page.indexOf("@media (prefers-color-scheme:dark)")));
   const iSombre = page.indexOf(':root[data-theme="dark"]{');
-  const SOMBRE = jetons(page.slice(iSombre, iSombre + 900));
+  /* Jusqu'à l'accolade fermante, pas jusqu'à un nombre rond. La fenêtre de 900
+     caractères était déjà plus courte que le bloc (924) : le jour où un jeton
+     serait passé la limite, il aurait cessé d'être testé sans un mot. */
+  const SOMBRE = jetons(page.slice(iSombre, page.indexOf("}", iSombre)));
   const teintes = [...page.matchAll(/\["(#[0-9A-F]{6})","(#[0-9A-F]{6})"\]/g)].map(m => [m[1], m[2]]);
 
   const hex = h => ({ r:parseInt(h.slice(1,3),16), g:parseInt(h.slice(3,5),16), b:parseInt(h.slice(5,7),16) });
@@ -95,6 +98,15 @@ function contrasteJetons(){
     exige(`${nomTheme} · --line-2 vs --surface`, T["--line-2"], T["--surface"], 1.8);
     exige(`${nomTheme} · grille vs canevas`, T["--grid"], T["--ground"], 1.1);
     exige(`${nomTheme} · grille forte vs canevas`, T["--grid-fort"], T["--ground"], 1.2);
+
+    /* L'anneau de focus au clavier est un indicateur d'interface : WCAG 1.4.11
+       lui demande 3:1 contre ce qu'il entoure. C'est le seul repère de position
+       qu'a quelqu'un qui n'utilise pas la souris — s'il se fond dans le fond,
+       la navigation clavier est finie, et rien ne l'annonce. */
+    exige(`${nomTheme} · anneau de focus vs --surface`,   T["--focus"], T["--surface"],   3);
+    exige(`${nomTheme} · anneau de focus vs --surface-2`, T["--focus"], T["--surface-2"], 3);
+    exige(`${nomTheme} · anneau de focus vs --ground`,    T["--focus"], T["--ground"],    3);
+    exige(`${nomTheme} · anneau de focus vs --bloc`,      T["--focus"], T["--bloc"],      3);
   }
   return { total, ratés };
 }

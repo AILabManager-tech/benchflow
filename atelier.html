@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>BenchFlow</title>
@@ -31,6 +33,10 @@
      sans ça, du blanc sur les aplats vifs du thème sombre tombe à 2 pour 1. */
   --sur-teinte:#FFFFFF;
   --accent:#0E7C86; --accent-soft:#D6EDEF; --accent-ink:#085158;
+  /* L'anneau de focus a son propre jeton : --accent tombait à 2,84:1 contre le
+     canevas, sous le 3:1 que WCAG 1.4.11 demande à un indicateur d'interface.
+     Le teindre plus foncé ici ne déplace aucune autre couleur. */
+  --focus:#0B646C;
   --ok:#2E7D5B; --ok-soft:#DCEFE5;
   --warn:#885E0E; --warn-soft:#F7EBD2;
   --crit:#B33A34; --crit-soft:#F7E0DE;
@@ -51,6 +57,7 @@
   --ink:#EDF2F6; --ink-2:#C7D0D8; --ink-3:#A6B1BA;
   --sur-teinte:#08131A;
   --accent:#35C6D4; --accent-soft:#12414A; --accent-ink:#7FDDE7;
+  --focus:#35C6D4;
   --ok:#7AC6A4; --ok-soft:#183A2F; --warn:#DDB059; --warn-soft:#3E331A;
   --crit:#F1A29C; --crit-soft:#412422; --abst:#9FB0BE; --abst-soft:#242D34;
   --nombre:#9EB7E5; --texte:#C1ADE3; --booleen:#CEB37E; --anomalie:#F1A29C;
@@ -69,6 +76,7 @@
   --ink:#EDF2F6; --ink-2:#C7D0D8; --ink-3:#A6B1BA;
   --sur-teinte:#08131A;
   --accent:#35C6D4; --accent-soft:#12414A; --accent-ink:#7FDDE7;
+  --focus:#35C6D4;
   --ok:#7AC6A4; --ok-soft:#183A2F; --warn:#DDB059; --warn-soft:#3E331A;
   --crit:#F1A29C; --crit-soft:#412422; --abst:#9FB0BE; --abst-soft:#242D34;
   --nombre:#9EB7E5; --texte:#C1ADE3; --booleen:#CEB37E; --anomalie:#F1A29C;
@@ -87,7 +95,19 @@ body{margin:0; background:var(--ground); color:var(--ink); overflow:hidden;
 h1{margin:0; font-size:15px; font-weight:600; letter-spacing:-.012em; white-space:nowrap}
 button,select,input,textarea{font:inherit; color:inherit}
 button{cursor:pointer; background:none; border:0; padding:0}
-:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:4px}
+/* Les champs remplacent l'anneau par une bordure + un halo au :focus — assez
+   à la souris, trop discret au clavier, où le focus est la seule position
+   qu'on possède. On remet un anneau franc, mais seulement au :focus-visible :
+   cliquer dans un champ ne le déclenche pas. */
+.champ input:focus-visible,.champ select:focus-visible,.champ textarea:focus-visible{
+  outline:2px solid var(--focus); outline-offset:1px}
+/* Réglage système « réduire les animations » : on le respecte au lieu de
+   l'ignorer. Rien ici n'est décoratif au point de valoir un vertige. */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{transition-duration:.01ms !important; animation-duration:.01ms !important;
+    animation-iteration-count:1 !important; scroll-behavior:auto !important}
+}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--line-2); border-radius:6px; border:3px solid var(--surface)}
@@ -505,14 +525,20 @@ table.tb td.num{font-family:var(--mono); text-align:right; white-space:nowrap}
     <div class="rech">
       <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
         <circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 L14 14"/></svg>
-      <input id="rech-pal" placeholder="Chercher un bloc…" autocomplete="off">
+      <input id="rech-pal" placeholder="Chercher un bloc…" autocomplete="off"
+             aria-label="Chercher un bloc dans la palette">
     </div>
     <div class="pal" id="pal"></div>
   </div>
 
   <!-- ══ centre : canevas ═══════════════════════════════════════ -->
   <div class="zone-canevas">
-    <div class="wrap" id="wrap">
+    <!-- role=application : les flèches, Espace et Ctrl+lettre y sont détournés
+         par l'éditeur ; sans ce rôle un lecteur d'écran les interceptera avant.
+         La navigation clavier COMPLÈTE du graphe n'existe pas — c'est une
+         limitation connue, annoncée dans le README plutôt que sous-entendue. -->
+    <div class="wrap" id="wrap" role="application"
+         aria-label="Canevas du montage — édition à la souris. Ctrl+K ouvre la palette de commandes, seule voie entièrement au clavier.">
       <div id="scene"><svg id="fils"><g id="fils-g"></g></svg></div>
       <div class="cadre-sel" id="cadre" style="display:none"></div>
     </div>
@@ -578,7 +604,7 @@ table.tb td.num{font-family:var(--mono); text-align:right; white-space:nowrap}
     <div class="tiroir-corps" style="flex:1; min-height:0; display:flex">
       <div class="vue on plein" id="v-jrn">
         <div class="barre-code">
-          <input id="jrn-filtre" placeholder="Filtrer le journal…" autocomplete="off"
+          <input id="jrn-filtre" placeholder="Filtrer le journal…" autocomplete="off" aria-label="Filtrer le journal"
             style="flex:1;max-width:260px;padding:3px 8px;border-radius:5px;border:1px solid var(--line-2);
             background:var(--surface);font-size:11.5px">
           <button class="btn sm bascule active" data-niv="tout">tout</button>
@@ -601,17 +627,18 @@ table.tb td.num{font-family:var(--mono); text-align:right; white-space:nowrap}
 </div>
 
 <!-- ══ superpositions ════════════════════════════════════════════ -->
-<div class="voile" id="voile-cmd">
+<div class="voile" id="voile-cmd" role="dialog" aria-modal="true" aria-label="Palette de commandes">
   <div class="boite">
-    <div class="cmd-rech"><input id="cmd-input" placeholder="Tape une commande…" autocomplete="off"></div>
+    <div class="cmd-rech"><input id="cmd-input" placeholder="Tape une commande…" autocomplete="off"
+      aria-label="Chercher une commande"></div>
     <div class="cmd-liste" id="cmd-liste"></div>
   </div>
 </div>
 
-<div class="voile" id="voile-forge">
+<div class="voile" id="voile-forge" role="dialog" aria-modal="true" aria-labelledby="forge-titre">
   <div class="boite large">
     <div class="boite-tt"><h3 id="forge-titre">Forger un bloc</h3><div class="sp"></div>
-      <button class="btn sm plat" id="forge-fermer">✕</button></div>
+      <button class="btn sm plat" id="forge-fermer" aria-label="Fermer la forge">✕</button></div>
     <div class="boite-corps" id="forge-corps"></div>
     <div class="boite-pied">
       <button class="btn sm" id="forge-essai">Essayer</button>
@@ -623,16 +650,18 @@ table.tb td.num{font-family:var(--mono); text-align:right; white-space:nowrap}
   </div>
 </div>
 
-<div class="voile" id="voile-boite">
+<div class="voile" id="voile-boite" role="dialog" aria-modal="true" aria-labelledby="boite-titre">
   <div class="boite" id="boite-gen">
     <div class="boite-tt"><h3 id="boite-titre">—</h3><div class="sp"></div>
-      <button class="btn sm plat" id="boite-fermer">✕</button></div>
+      <button class="btn sm plat" id="boite-fermer" aria-label="Fermer">✕</button></div>
     <div class="boite-corps" id="boite-corps"></div>
     <div class="boite-pied" id="boite-pied"></div>
   </div>
 </div>
 
-<div class="pain" id="pain"></div>
+<!-- role=status : un message passager doit être lu par un lecteur d'écran,
+     sinon il ne s'adresse qu'à ceux qui regardent au bon moment. -->
+<div class="pain" id="pain" role="status" aria-live="polite" aria-atomic="true"></div>
 <input type="file" id="fichier-in" accept=".json,application/json" style="display:none">
 
 <script>
@@ -4786,7 +4815,7 @@ function vueMontage(f){
     </table>
 
     <div class="h2">Mise en page</div>
-    <div class="champ"><label>Colonnes par étage</label>
+    <div class="champ"><label for="vm-etage">Colonnes par étage</label>
       <input id="vm-etage" type="number" min="0" value="${nb(M.etage, 0)}">
       <div class="aide">Au-delà, le montage repart à la ligne un étage plus bas.
         <b>0</b> = autant que l'écran en accepte. Le sens de lecture reste
@@ -4933,7 +4962,7 @@ function dessineScenarios(){
       h += `<div class="ds mono" style="display:flex;gap:5px;align-items:center">
         <span style="color:var(--accent-ink)">${ech(bb ? bb.nom : bid)}</span>
         <span>${ech(Object.entries(sc.surcharges[bid]).map(([k, x]) => k + "=" + x).join(", "))}</span>
-        <button class="btn sm plat" data-sc-defige="${sc.id}|${bid}">✕</button></div>`;
+        <button class="btn sm plat" data-sc-defige="${sc.id}|${bid}" aria-label="Défiger ce bloc">✕</button></div>`;
     });
 
     h += `<div style="margin-top:7px">`;
@@ -4953,7 +4982,7 @@ function dessineScenarios(){
           ${OPS.map(o => `<option${o === at.op ? " selected" : ""}>${o}</option>`).join("")}</select>
         <input data-at="${sc.id}|${j}|valeur" value="${ech(at.valeur)}" class="mono"
           style="flex:1;padding:2px 5px;font-size:11px;border-radius:4px;border:1px solid var(--line-2);background:var(--surface)">
-        <button class="btn sm plat" data-at-del="${sc.id}|${j}">✕</button></div>`;
+        <button class="btn sm plat" data-at-del="${sc.id}|${j}" aria-label="Retirer cette attente">✕</button></div>`;
       if (li && !li.ok)
         h += `<div class="ds" style="color:var(--crit);margin:-2px 0 6px 4px">obtenu : <span class="mono">${ech(li.obtenu)}</span></div>`;
     });
@@ -5593,6 +5622,7 @@ function rendForge(){
     <div class="champ"><label>Couleur</label>
       <div class="pastilles-couleur">${couleurs.map(c =>
         `<button data-coul="${c}" class="${c === d.coul ? "on" : ""}" aria-pressed="${c === d.coul}"
+          aria-label="Couleur ${c}"
           style="background:${c}">${c === d.coul ? "✓" : ""}</button>`).join("")}</div></div>
     <div class="grille2">
       <div class="champ"><label>Ports d'entrée</label><input id="fg-e" value="${ech(d.entrees.join(", "))}"
@@ -5625,7 +5655,7 @@ function rendForge(){
           ${["texte","nombre","code"].map(t => `<option${t === p.t ? " selected" : ""}>${t}</option>`).join("")}</select>
         <input data-p="${i}|d" value="${ech(p.d)}" placeholder="défaut" class="mono"
           style="width:74px;padding:4px 6px;border-radius:5px;border:1px solid var(--line-2);background:var(--surface-2);font-size:11.5px">
-        <button class="btn sm plat" data-p-del="${i}">✕</button>
+        <button class="btn sm plat" data-p-del="${i}" aria-label="Retirer ce réglage">✕</button>
       </div>`).join("")}</div>
     <button class="btn sm" id="fg-p-neuf">+ réglage</button>
 
@@ -6099,3 +6129,4 @@ function tenteMigration(){
 })();
 
 </script>
+</html>
