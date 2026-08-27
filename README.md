@@ -13,6 +13,18 @@ et ce que tout ça coûte en temps.
 
 Un seul fichier HTML. Aucune dépendance. Ouvrable hors ligne, pour toujours.
 
+> ### ⚠ Un montage est du code, pas un document
+>
+> Les expressions des blocs et le corps des blocs forgés sont du **JavaScript, exécuté
+> tel quel** dès qu'on appuie sur Exécuter. C'est tout l'intérêt de FlowBench — et ça veut
+> dire qu'**ouvrir un `.flowbench.json` reçu de quelqu'un revient à lancer son code**.
+>
+> Traite un montage venu d'ailleurs comme tu traiterais un script : lis-le avant. Le
+> panneau **Code engendré**, onglet *Montage brut*, montre le contenu exact d'un fichier
+> sans rien exécuter. Le masquage de `Math` et `Date` décrit plus bas sert le
+> déterminisme, **pas** la sécurité : ce n'est pas un bac à sable et ça n'arrête personne
+> qui essaie.
+
 ## Lancer
 
 - l'icône **FlowBench** dans le menu d'applications, ou
@@ -33,8 +45,15 @@ sans exécuter sa fonction, et le journal le dit.
 journalisée avec son instant simulé, chaque file d'attente se compte, chaque bloc rapporte
 son taux d'occupation.
 
-**Reproductible.** Tout le hasard vient d'une graine. Même graine, même exécution —
-sinon un scénario ne voudrait rien dire.
+**Reproductible.** Tout le hasard vient d'une graine — même graine, même exécution,
+sinon un scénario ne voudrait rien dire. La garantie couvre aussi le code que *tu* écris :
+dans une expression, un bloc Script ou un bloc forgé, `Math.random()`, `Date.now()` et
+`new Date()` sans argument **lèvent** une erreur explicite, qui devient une anomalie sur le
+fil et une ligne de journal. `hasard()` tire de la graine ; le reste de `Math` et une date
+construite avec un argument passent inchangés.
+
+Ce que ça n'est pas : un bac à sable. Du code déterminé à s'échapper y arrive. Ce qui est
+fermé, c'est l'accident — le seul cas qui se produit vraiment.
 
 ## Ce qu'il y a dedans
 
@@ -110,7 +129,7 @@ doit recevoir, combien, combien d'anomalies, quelle durée maximale, quel coût.
 test unitaire du montage — après chaque modification, on sait tout de suite ce qu'on a
 cassé. Les blocs **Assertion** posés dans le flux alimentent les mêmes résultats.
 
-Les quatre montages d'exemple livrés viennent avec leurs scénarios, tous verts.
+Les cinq montages d'exemple livrés viennent avec leurs scénarios, tous verts.
 
 ## Ce qui sort d'ici
 
@@ -118,9 +137,19 @@ Les quatre montages d'exemple livrés viennent avec leurs scénarios, tous verts
   réellement exécutées, obtenues par `Function.toString`. Ce qui tourne dans la page et
   ce qui tourne dans le fichier sont le *même code* : aucune dérive possible.
   `node montage.js` donne exactement le même journal que FlowBench.
-- **Python** — traduction fidèle du flux (mêmes blocs, mêmes ports, mêmes règles de
-  propagation des anomalies), sans l'horloge simulée. Les expressions JavaScript passent
-  par un traducteur restreint qui échoue bruyamment plutôt que d'inventer.
+- **Python** — traduction fidèle du **flux** : mêmes blocs, mêmes ports, mêmes règles de
+  propagation des anomalies. Les expressions JavaScript passent par un traducteur restreint
+  qui échoue bruyamment plutôt que d'inventer.
+
+  Quatre choses ne traversent pas la frontière, et il vaut mieux le savoir avant de
+  s'appuyer dessus :
+
+  | | |
+  |---|---|
+  | **L'horloge simulée** | Ni latence, ni gigue, ni file d'attente, ni débit, ni coût, ni traitements simultanés. Des cinq réglages avancés, seul le **taux de panne** traverse. Un montage Python dit *ce qui sort*, jamais *combien de temps ça prend*. |
+  | **Les blocs Script** | Leur corps reste du JavaScript. Le fichier Python lève une erreur nommant le bloc, au lieu de deviner. |
+  | **Les blocs forgés** | Pareil, et pour la même raison. À réécrire en Python, ou à garder dans FlowBench. |
+  | **Les scénarios** | Ils ne sont pas exportés. Les blocs **Assertion** posés dans le flux, eux, traversent et rapportent leurs résultats. |
 - **schema.json** pour la skill `/blocs`, **Mermaid**, et le montage brut.
 
 ## Raccourcis
@@ -145,8 +174,8 @@ Le fichier est coupé en deux moitiés par les marqueurs `@noyau:debut` / `@noya
 touche jamais au DOM. Il tourne donc tel quel hors du navigateur :
 
 ```
-node verifier.mjs        226 assertions · 124 paires de couleurs au-dessus du
-                         seuil de contraste · engendre et exécute les 4 exemples
+node verifier.mjs        232 assertions · 124 paires de couleurs au-dessus du
+                         seuil de contraste · engendre et exécute les 5 exemples
                          en JavaScript et en Python
 node verifier.mjs -v     détail de chaque assertion
 node verifier.mjs --rapide   assertions seulement
@@ -193,11 +222,9 @@ Un montage ouvert depuis un fichier passe d'abord par une remise d'aplomb : iden
 uniques, fils dont les deux extrémités existent, noms de port possibles. Ce n'est jamais
 fait en douce — une boîte énumère chaque retouche.
 
-> **Un montage est du code.** Les expressions des blocs et le corps des blocs forgés sont
-> du JavaScript, exécuté tel quel dès qu'on appuie sur Exécuter. C'est tout l'intérêt de
-> FlowBench — et cela veut dire qu'ouvrir un fichier `.flowbench.json` reçu de quelqu'un
-> revient à lancer son code. À traiter comme un script, pas comme un document. Le panneau
-> **Code engendré**, onglet *Montage brut*, permet de lire un fichier avant de l'exécuter.
+Cette remise d'aplomb répare la *structure* du montage ; elle ne juge pas le code qu'il
+transporte. Ce qui reste vrai de bout en bout : ouvrir un montage reçu, c'est lancer son
+code — voir l'avertissement en tête de ce fichier.
 
 L'esquisse précédente enregistrait son montage sous la clé `atelier`. Au premier
 démarrage, s'il en existe un, il est **converti et chargé**, avec un récapitulatif de ce
