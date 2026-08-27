@@ -42,8 +42,10 @@
 <meta name="color-scheme" content="light dark">
 <!-- Icône en SVG intégré : un navigateur réclame /favicon.ico à toute page
      servie en http, et sans celle-ci la démo publiée répondait 404. Une
-     donnée « data: », donc toujours aucune requête réseau. -->
-<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="%230E7C86"/><rect x="8" y="7" width="16" height="18" rx="2" fill="none" stroke="%23fff" stroke-width="2.4"/><rect x="9.2" y="8.2" width="6.8" height="15.6" rx="1" fill="%23fff"/></svg>'>
+     donnée « data: » en base64 — le SVG brut contenait des espaces et des
+     guillemets que Chrome refusait, et il redemandait /favicon.ico. Toujours
+     aucune requête réseau. -->
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzBFN0M4NiIvPjxyZWN0IHg9IjgiIHk9IjciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxOCIgcng9IjIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIyLjQiLz48cmVjdCB4PSI5LjIiIHk9IjguMiIgd2lkdGg9IjYuOCIgaGVpZ2h0PSIxNS42IiByeD0iMSIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg==">
 
 <script type="application/ld+json">
 {
