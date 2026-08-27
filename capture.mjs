@@ -11,6 +11,7 @@
    Comme sonde.mjs, c'est un outil de développement : il lui faut Chrome.
    L'application, elle, n'a toujours aucune dépendance. */
 import { spawn } from "node:child_process";
+import { tmpdir } from "node:os";
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -21,9 +22,13 @@ const SORTIE = join(ici, SOMBRE ? "capture-sombre.png" : "capture.png");
 const PORT = 29224;
 const PAGE = "file://" + join(ici, "atelier.html");
 
+/* Profil jetable dans le dossier temporaire du système : un chemin en dur
+   marchait sur une machine et sur une seule. */
+const PROFIL = join(tmpdir(), "benchflow-capture");
+
 const chrome = spawn("google-chrome", [
   "--headless=new", `--remote-debugging-port=${PORT}`,
-  "--user-data-dir=/tmp/claude-1000/chrome-capture", "--no-first-run",
+  `--user-data-dir=${PROFIL}`, "--no-first-run",
   "--no-default-browser-check", "--disable-gpu", "--allow-file-access-from-files",
   "--hide-scrollbars", "--force-device-scale-factor=2",
   "--window-size=1600,1000", "about:blank"

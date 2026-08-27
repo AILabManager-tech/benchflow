@@ -944,8 +944,13 @@ const brut = v => (v === undefined || v === null) ? undefined : v.v;
  *  Ce n'est pas un bac à sable : du code décidé à s'échapper y arrive. C'est un
  *  garde-fou contre l'accident, qui est le cas réel. */
 function porteeDeterministe(){
-  const refus = quoi => () => { throw new Error(quoi + " n'est pas disponible dans un bloc : "
-    + "l'exécution ne serait plus reproductible. Utilise hasard() pour l'aléa, temps pour l'horloge."); };
+  /* Le message doit donner un conseil qu'on peut suivre. `hasard()` n'existe que
+     dans un bloc Script ou forgé : aucun appel à evalue() ne le passe aux
+     expressions. Le dire là plutôt que d'envoyer l'utilisateur vers un
+     « hasard is not defined » deux secondes plus tard. */
+  const refus = quoi => () => { throw new Error(quoi + " n'est pas disponible : "
+    + "l'exécution ne serait plus reproductible. Dans un bloc Script ou forgé, hasard() le "
+    + "remplace ; une expression n'a pas d'aléa, c'est voulu."); };
   const M = { random: refus("Math.random()") };
   Object.getOwnPropertyNames(Math).forEach(k => { if (k !== "random") M[k] = Math[k]; });
   const D = function(...a){
@@ -2163,7 +2168,13 @@ function executer(M, opts){
       lat = c.latence ? c.latence(p, ctx) : nb(p._lat, c.lat || 0);
       const g = nb(p._gigue, 0);
       if (g) lat = Math.max(0, lat * (1 + (rng() * 2 - 1) * g / 100));
-    } catch(err){ lat = nb(p._lat, c.lat || 0); }
+    } catch(err){
+      /* Le repli existait, muet. Aucun bloc livré ne peut lever ici — mais si
+         un jour l'un d'eux le fait, une durée remplacée en douce fausserait la
+         chronologie, les mesures et le goulot sans que rien ne l'annonce. */
+      jrn("err", b.id, `${b.nom} · durée de traitement incalculable (${err.message}) — repli sur le réglage général`);
+      lat = nb(p._lat, c.lat || 0);
+    }
 
     let res = {};
     try {

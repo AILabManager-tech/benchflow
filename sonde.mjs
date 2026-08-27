@@ -18,6 +18,7 @@
    clics, le télescopage des étiquettes de ports, et la dérive des blocs qui
    suivaient un encadré. */
 import { spawn } from "node:child_process";
+import { tmpdir } from "node:os";
 import { readFileSync } from "node:fs";
 
 const PORT = 29222;
@@ -26,9 +27,13 @@ import { dirname, join } from "node:path";
 const PAGE = "file://" + join(dirname(fileURLToPath(import.meta.url)), "atelier.html");
 const script = process.argv[2] ? readFileSync(process.argv[2], "utf8") : "({ok:true})";
 
+/* Profil jetable dans le dossier temporaire du système : un chemin en dur
+   marchait sur une machine et sur une seule. */
+const PROFIL = join(tmpdir(), "benchflow-sonde");
+
 const chrome = spawn("google-chrome", [
   "--headless=new", `--remote-debugging-port=${PORT}`,
-  "--user-data-dir=/tmp/claude-1000/chrome-sonde", "--no-first-run", "--no-default-browser-check",
+  `--user-data-dir=${PROFIL}`, "--no-first-run", "--no-default-browser-check",
   "--disable-gpu", "--allow-file-access-from-files", "--window-size=1600,1000", "about:blank"
 ], { stdio: "ignore" });
 
