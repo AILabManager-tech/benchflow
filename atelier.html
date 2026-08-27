@@ -1,9 +1,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Atelier de blocs</title>
+<title>FlowBench</title>
 <style>
 /* ═══════════════════════════════════════════════════════════════════
-   ATELIER DE BLOCS — feuille de style
+   FLOWBENCH — feuille de style
    Palette sobre, deux thèmes complets, aucune dépendance.
    ═══════════════════════════════════════════════════════════════════ */
 :root{
@@ -470,7 +470,7 @@ table.tb td.num{font-family:var(--mono); text-align:right; white-space:nowrap}
 
 <!-- ══ barre haute ══════════════════════════════════════════════ -->
 <div class="bar">
-  <div class="marque"><span class="logo">◧</span><h1>Atelier de blocs</h1></div>
+  <div class="marque"><span class="logo">◧</span><h1>FlowBench</h1></div>
   <span class="etat-doc" id="etat-doc">—</span>
   <span class="sep"></span>
   <button class="btn plat" id="b-annuler" title="Annuler (Ctrl+Z)">
@@ -638,7 +638,7 @@ table.tb td.num{font-family:var(--mono); text-align:right; white-space:nowrap}
 <script>
 "use strict";
 /* ═══════════════════════════════════════════════════════════════════════════
-   ATELIER DE BLOCS
+   FLOWBENCH
    Un bac à sable pour concevoir un pipeline, puis le faire tourner pour de
    vrai : des valeurs typées circulent de bloc en bloc, chaque bloc applique
    une fonction, le temps s'écoule, les files se remplissent, les pannes
@@ -1660,7 +1660,7 @@ function compileForge(def){
     },
     tsortie(){ const o = {}; sorties.forEach(s => o[s] = "quelconque"); return o; },
     py: () => `raise RuntimeError("« ${(def.nom || "bloc forgé").replace(/"/g, "'")} » est un bloc forgé : `
-      + `son corps est du JavaScript, non traduit en Python. Réécris-le ici, ou garde ce bloc dans l'atelier.")`
+      + `son corps est du JavaScript, non traduit en Python. Réécris-le ici, ou garde ce bloc dans FlowBench.")`
   };
 }
 
@@ -1693,7 +1693,7 @@ function montageVide(){
  *  revient dans `notes`, pour être montrée à qui ouvre le fichier.
  *
  *  Deux blocs partageant un identifiant, c'est une ambiguïté qu'on ne peut pas
- *  lever : l'atelier n'en verrait qu'un, les fils s'attacheraient au premier, et
+ *  lever : FlowBench n'en verrait qu'un, les fils s'attacheraient au premier, et
  *  déplacer l'un bougerait l'autre. On renumérote donc, et on le dit. */
 function normaliseMontage(M){
   const notes = [];
@@ -2495,7 +2495,7 @@ function diagnostics(M){
    §9 · ENGENDREMENT DE CODE
    Le montage sort d'ici sous forme de programme. La version JavaScript n'est
    pas une approximation : elle embarque le moteur et les fonctions que
-   l'atelier vient d'exécuter, mot pour mot, obtenus par `Function.toString`.
+   FlowBench vient d'exécuter, mot pour mot, obtenus par `Function.toString`.
    Ce qui tourne dans la page et ce qui tourne dans le fichier sont le même
    code — il ne peut donc pas y avoir de dérive entre les deux.
    ─────────────────────────────────────────────────────────────────────────── */
@@ -2559,10 +2559,10 @@ function engendreJS(M, opts){
 "use strict";
 /* ═══════════════════════════════════════════════════════════════════════════
    « ${(M.titre || "Montage").replace(/\*\//g, "*∕")} »
-   Engendré par l'Atelier de blocs.
+   Engendré par FlowBench.
 
    Ce fichier n'est pas une esquisse : il contient le moteur d'exécution et les
-   fonctions de chaque comportement, repris tels quels de l'atelier. Lance-le :
+   fonctions de chaque comportement, repris tels quels de FlowBench. Lance-le :
 
        node ce-fichier.js            exécute le montage avec la graine ${o.graine}
        node ce-fichier.js 7          … avec la graine 7
@@ -2613,7 +2613,7 @@ const RUNTIME_PY = String.raw`import json, math, random, re, sys
 # ── valeurs ────────────────────────────────────────────────────────────────
 class Enr(dict):
     """Un enregistrement. En JavaScript on écrit x.quantite ; en Python ce serait
-    x["quantite"]. Comme les expressions viennent de l'atelier telles quelles, on
+    x["quantite"]. Comme les expressions viennent de FlowBench telles quelles, on
     fait marcher les deux — sans quoi la moindre lecture de champ ferait échouer
     toute la traduction."""
     def __getattr__(self, k):
@@ -2814,7 +2814,7 @@ class _Aide:
 
 def js_corps(src, variables):
     raise RuntimeError("bloc Script / bloc forgé : corps JavaScript non traduit en Python "
-                       "(« %s »). Réécris-le en Python ou garde ce bloc dans l'atelier." % src[:40])
+                       "(« %s »). Réécris-le en Python ou garde ce bloc dans FlowBench." % src[:40])
 
 # ── contexte ───────────────────────────────────────────────────────────────
 class Ctx:
@@ -2863,11 +2863,11 @@ function engendrePython(M){
 
   return `#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""« ${(M.titre || "Montage").replace(/"/g, "'")} » — engendré par l'Atelier de blocs.
+"""« ${(M.titre || "Montage").replace(/"/g, "'")} » — engendré par FlowBench.
 
 Traduction fidèle du FLUX : mêmes blocs, mêmes ports, mêmes règles de
 propagation des anomalies. Ce qui ne traverse pas la frontière :
-  · l'horloge simulée (latences, files d'attente, débit) reste dans l'atelier ;
+  · l'horloge simulée (latences, files d'attente, débit) reste dans FlowBench ;
   · les blocs Script et les blocs forgés gardent un corps JavaScript et lèvent
     une erreur explicite ici — à réécrire en Python si tu en as besoin.
 ${inconnus.length ? "  · " + inconnus.length + " bloc(s) au comportement inconnu ont été omis.\n" : ""}
@@ -2980,7 +2980,7 @@ function engendreSchemaBlocs(M){
   const rang = vagues(M);
   const cats = [...new Set(M.blocs.map(b => (compDe(b.comp) || { cat: "?" }).cat))];
   return {
-    titre: M.titre || "Montage de l'atelier",
+    titre: M.titre || "Montage FlowBench",
     sousTitre: `${M.blocs.length} blocs · ${M.liens.length} liens`,
     couches: cats.map((nom, i) => ({ id: "L" + (i + 1), nom })),
     blocs: M.blocs.map(b => {
@@ -3638,7 +3638,7 @@ function lancerTests(){
   const srcJS2 = engendreJS(EXEMPLES["Service instable"](), { graine: 4 });
   ok("un montage à hasard s'engendre aussi", (() => {
     try { new Function("module", "require", "process", "console", sansShebang(srcJS2)); return true; } catch(e){ return false; } })());
-  ok("le fichier engendré s'annonce", /Atelier de blocs/.test(srcJS));
+  ok("le fichier engendré s'annonce", /FlowBench/.test(srcJS));
   ok("les fonctions du catalogue y sont bien présentes", /"fusionner"/.test(srcJS) && /mode de combinaison inconnu/.test(srcJS));
 
   const Mpy = montageVide();
@@ -5403,7 +5403,7 @@ function dessineTests(){
 
 /* ───────────────────────────────────────────────────────────────────────────
    §20 · PALETTE DE COMMANDES
-   Tout ce que fait l'atelier est atteignable au clavier, sans chercher.
+   Tout ce que fait FlowBench est atteignable au clavier, sans chercher.
    ─────────────────────────────────────────────────────────────────────────── */
 
 function COMMANDES(){
@@ -5770,7 +5770,7 @@ function telecharge(nom, contenu){
 }
 
 function enregistreFichier(){
-  telecharge((M.titre || "montage").replace(/[^\wÀ-ÿ]+/g, "-").toLowerCase() + ".atelier.json",
+  telecharge((M.titre || "montage").replace(/[^\wÀ-ÿ]+/g, "-").toLowerCase() + ".flowbench.json",
              JSON.stringify(M, null, 1));
 }
 
@@ -5812,7 +5812,7 @@ function collePressePapier(){
     navigator.clipboard.readText().then(importe,
       () => ouvreBoite("Coller un montage",
         `<textarea id="coller-zone" class="code" style="width:100%;min-height:280px"
-           placeholder="Colle ici le contenu d'un fichier .atelier.json"></textarea>`,
+           placeholder="Colle ici le contenu d'un fichier .flowbench.json"></textarea>`,
         `<div class="sp"></div><button class="btn sm primary" id="coller-ok">Charger</button>`,
         () => { $("coller-ok").onclick = () => { importe($("coller-zone").value); fermeVoiles(); }; }));
   } else ouvreBoite("Coller un montage",
@@ -5992,6 +5992,12 @@ addEventListener("resize", () => { minicarte(); if ($("v-chrono").classList.cont
 addEventListener("contextmenu", e => { if (e.target.closest("#wrap")) e.preventDefault(); });
 
 /* ── persistance locale ──────────────────────────────────────────────────── */
+/* Les clés « atelier2 », « atelier-theme » et « atelier » gardent leur nom
+   d'origine — comme le type de glisser « text/atelier » et le symbole
+   « atelier.anomalie ». Ce ne sont pas des libellés : renommer une clé de
+   stockage, c'est effacer sans le dire le montage et le thème de quelqu'un qui
+   a déjà travaillé. Le produit s'appelle FlowBench ; ces cinq chaînes-là
+   restent où elles sont. */
 function sauve(){
   try { localStorage.setItem("atelier2", JSON.stringify({ M, seq, vue })); } catch(e){}
 }

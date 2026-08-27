@@ -1,4 +1,6 @@
-# Atelier de blocs
+# FlowBench
+
+*Pipeline simulation workbench — interface en français.*
 
 Un bac à sable pour **concevoir un pipeline, puis le faire tourner**. On pose des blocs,
 on tire des fils, on donne une fonction à chacun — et des valeurs typées traversent le
@@ -13,7 +15,8 @@ Un seul fichier HTML. Aucune dépendance. Ouvrable hors ligne, pour toujours.
 
 ## Lancer
 
-- l'icône **Atelier de blocs** dans le menu d'applications, ou
+- l'icône **Atelier de blocs** dans le menu d'applications — l'entrée `.desktop`
+  vit hors du dépôt et porte encore l'ancien nom, ou
 - `atelier-blocs` au terminal, ou
 - ouvrir `atelier.html` dans un navigateur.
 
@@ -47,7 +50,7 @@ sinon un scénario ne voudrait rien dire.
 | Fiabilité | Réparer (budget + usure + backoff), Disjoncteur, Aléa de panne, Refuser |
 | Sortie | Sortie, Rebut, Assertion, Sonde |
 
-À l'ouverture, l'atelier charge le **traitement des commandes d'une boutique en ligne**.
+À l'ouverture, FlowBench charge le **traitement des commandes d'une boutique en ligne**.
 Ce ne sont pas des entiers déguisés : dix vraies lignes de commande entrent par un jeu de
 données CSV, chaque bloc lit des champs qui existent — quantité, prix unitaire, pays — et
 applique une règle qu'on pourrait défendre en réunion. Une quantité de 0 ou de 40 est
@@ -115,7 +118,7 @@ Les quatre montages d'exemple livrés viennent avec leurs scénarios, tous verts
 - **JavaScript** — un fichier autonome qui embarque le moteur et les fonctions
   réellement exécutées, obtenues par `Function.toString`. Ce qui tourne dans la page et
   ce qui tourne dans le fichier sont le *même code* : aucune dérive possible.
-  `node montage.js` donne exactement le même journal que l'atelier.
+  `node montage.js` donne exactement le même journal que FlowBench.
 - **Python** — traduction fidèle du flux (mêmes blocs, mêmes ports, mêmes règles de
   propagation des anomalies), sans l'horloge simulée. Les expressions JavaScript passent
   par un traducteur restreint qui échoue bruyamment plutôt que d'inventer.
@@ -193,7 +196,7 @@ fait en douce — une boîte énumère chaque retouche.
 
 > **Un montage est du code.** Les expressions des blocs et le corps des blocs forgés sont
 > du JavaScript, exécuté tel quel dès qu'on appuie sur Exécuter. C'est tout l'intérêt de
-> l'atelier — et cela veut dire qu'ouvrir un fichier `.atelier.json` reçu de quelqu'un
+> FlowBench — et cela veut dire qu'ouvrir un fichier `.flowbench.json` reçu de quelqu'un
 > revient à lancer son code. À traiter comme un script, pas comme un document. Le panneau
 > **Code engendré**, onglet *Montage brut*, permet de lire un fichier avant de l'exécuter.
 

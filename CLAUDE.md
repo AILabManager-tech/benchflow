@@ -1,4 +1,4 @@
-# CLAUDE.md — Atelier de blocs
+# CLAUDE.md — FlowBench
 
 Simulateur de pipelines en **un seul fichier HTML**. On monte un schéma-bloc, on
 l'exécute, des valeurs typées le traversent pendant qu'une horloge simulée avance.
@@ -60,16 +60,33 @@ Si l'anglais revient un jour, ce ne sera pas en renommant le modèle mais en
 séparant *identifiant stable* et *libellé affiché*, avec une version de format et
 des tests de compatibilité. Ça n'a rien à voir avec une session de traduction.
 
-**7. Nom public : `pipeline-simulation-workbench`.**
-Décidé le 2026-08-25. C'est le nom du **dépôt** — descriptif, cherchable,
-compréhensible sans parler français, ce qui compense une interface qui, elle,
-reste francophone.
+**7. Le produit s'appelle FlowBench.**
+Décidé le 2026-08-26, et ça remplace la décision de la veille : « Atelier de
+blocs » ne doit plus apparaître nulle part. FlowBench est le nom **affiché** —
+titre de la page, en-tête, README, en-tête des fichiers engendrés. La phrase
+« Pipeline simulation workbench — interface en français » n'est pas un nom, c'est
+la description : sa place est le sous-titre du README et la ligne de description
+du dépôt, là où une recherche va effectivement la chercher.
 
-Le dossier local reste `atelier-blocs`, le fichier reste `atelier.html`, et le
-titre affiché reste « Atelier de blocs ». **Ne les renomme pas pour « aligner » :**
-le lanceur `~/.local/bin/atelier-blocs` et l'entrée `.desktop` pointent dessus et
-vivent hors du dépôt. Un dépôt peut porter un autre nom que son dossier de
-travail, ça n'a jamais gêné personne.
+Ce qui **ne** change pas, et qu'il ne faut pas « aligner » :
+
+- Le dossier `atelier-blocs`, le fichier `atelier.html`. Le lanceur
+  `~/.local/bin/atelier-blocs` et l'entrée `.desktop` pointent dessus et vivent
+  hors du dépôt : les renommer les casse.
+- Les clés de stockage `atelier2`, `atelier-theme`, `atelier`, le type de glisser
+  `text/atelier`, le symbole `atelier.anomalie`. Ce sont des identifiants, pas
+  des libellés. Renommer une clé de stockage efface sans le dire le montage et le
+  thème de quelqu'un qui a déjà travaillé — même faute que celle décrite à
+  l'invariant 6, sur une autre surface. Un commentaire à côté de `sauve()` le
+  redit sur place.
+
+L'extension d'enregistrement passe en revanche de `.atelier.json` à
+`.flowbench.json` : elle n'a aucun rôle à l'ouverture, où le filtre est `.json`,
+donc les fichiers déjà sur le disque s'ouvrent toujours.
+
+**Reste désaccordée, sciemment :** l'entrée du menu d'applications affiche
+encore « Atelier de blocs ». Le `.desktop` est hors du dépôt et sa modification
+demande un accord explicite.
 
 ## Déterminisme — ce qu'il couvre exactement
 
@@ -134,7 +151,7 @@ vérifier — c'est voulu, remets le motif à jour.
 
 - Le lanceur `~/.local/bin/atelier-blocs` et l'entrée `.desktop` sont **hors du
   dossier** et pointent sur `atelier.html`. Renommer le fichier les casse.
-- L'atelier restaure le montage sauvegardé au démarrage : après un changement
+- FlowBench restaure le montage sauvegardé au démarrage : après un changement
   d'exemple par défaut, il faut vider `localStorage` ou charger l'exemple à la
   main pour le voir.
 - `zsh` analyse toute la ligne avant de l'exécuter : une apostrophe non fermée
