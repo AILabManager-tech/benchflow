@@ -162,7 +162,15 @@ if (!R.echecs.length && !C.ratés.length && !process.argv.includes("--rapide")){
       if (!/bilan/.test(outPY)) throw new Error("sortie inattendue");
       console.log(`  ✓ python3 ${cle}.py`);
     } catch(err){
-      console.log(`  ~ python3 ${cle}.py — ${String(err.stderr || err.message).split("\n").filter(Boolean).pop()}`);
+      /* Autrefois un `~` et rien de plus : la traduction Python pouvait casser,
+         ou python3 être absent, et la vérification restait VERTE. Le README
+         promet que les exemples tournent dans les deux langages ; un contrôle
+         qui ne sait pas devenir rouge ne promet rien. */
+      const absent = err.code === "ENOENT";
+      console.log(`  ✗ python3 ${cle}.py — ` + (absent
+        ? "python3 introuvable : la traduction Python n'est pas vérifiée"
+        : String(err.stderr || err.message).split("\n").filter(Boolean).pop()));
+      process.exitCode = 1;
     }
 
     /* Contrôle croisé. Les deux programmes tirent leur hasard de générateurs
