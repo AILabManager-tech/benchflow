@@ -1,0 +1,69 @@
+# Les boucles de vérification du dépôt, à chaque poussée et à chaque proposition.
+#
+# Deux travaux séparés, tous deux bloquants :
+#   noyau      — les assertions, le contraste, et les exemples engendrés qui
+#                tournent VRAIMENT en JavaScript et en Python
+#   interface  — la page chargée dans Chrome, aucune erreur console tolérée
+#
+# Le banc de mutation tourne avec le reste : une suite verte ne prouve rien
+# tant qu'on n'a pas vérifié qu'elle sait devenir rouge.
+
+name: vérification
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  noyau:
+    name: noyau · assertions, contraste, JS ≡ Python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Le verifier lance lui-même « node » et « python3 » sur les exemples
+      # qu'il engendre. Sans python3 il est maintenant ROUGE, pas silencieux :
+      # on vérifie donc que les deux répondent avant de l'accuser.
+      - name: Outils présents
+        run: |
+          node --version
+          python3 --version
+
+      - name: Assertions, contraste, exemples engendrés
+        run: node verifier.mjs
+
+      - name: Banc de mutation
+        run: node mutation.mjs
+
+  interface:
+    name: interface · page chargée sans erreur console
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # Chrome est préinstallé sur ubuntu-latest ; on le dit plutôt que de
+      # l'espérer, pour que l'échec nomme sa cause s'il disparaît un jour.
+      - name: Chrome présent
+        run: google-chrome --version
+
+      - name: Sonde navigateur
+        run: node sonde.mjs

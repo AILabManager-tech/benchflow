@@ -94,5 +94,11 @@ console.log("── inspection ──");
 const v = r.result && r.result.result && r.result.result.value;
 try { console.log(JSON.stringify(JSON.parse(v), null, 1)); } catch(e){ console.log(v, r.result); }
 
+/* Le code de sortie disait toujours 0 : posée dans une CI, la sonde aurait
+   été verte avec la console pleine d'erreurs. Elle est rouge si la page a
+   signalé quoi que ce soit, ou si le script d'inspection a levé. */
+const casse = journal.length > 0 || /"ERREUR"/.test(String(v));
+if (casse) console.log(`\n✗ ${journal.length} message(s) de la page` +
+                       (/"ERREUR"/.test(String(v)) ? " · le script d'inspection a levé" : ""));
 ws.close(); chrome.kill();
-process.exit(0);
+process.exit(casse ? 1 : 0);
