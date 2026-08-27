@@ -1,0 +1,124 @@
+# Publie la démo sur GitHub Pages.
+#
+# Le dépôt reste « un seul fichier » : rien n'est dupliqué ici. Le site est
+# fabriqué au moment du déploiement — atelier.html devient index.html, et deux
+# chaînes y sont réécrites avec l'adresse réelle du site :
+#
+#   · l'adresse par défaut des balises canonical / og:url / og:image
+#   · le <title>, court dans l'application de bureau, descriptif sur le web
+#
+# Rien n'est publié sans que les vérifications soient passées d'abord : une
+# démo cassée en ligne est pire que pas de démo.
+
+name: démo
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un seul déploiement à la fois ; on ne coupe pas celui qui est en cours.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  batir:
+    name: bâtir le site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Vérifier avant de publier
+        run: |
+          node verifier.mjs
+          node mutation.mjs
+          node sonde.mjs
+
+      - name: Configurer Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Fabriquer _site
+        env:
+          BASE: ${{ steps.pages.outputs.base_url }}
+        run: |
+          set -euo pipefail
+          BASE="${BASE%/}"
+          echo "adresse du site : $BASE"
+
+          mkdir -p _site
+          cp atelier.html _site/index.html
+          cp capture.png capture-sombre.png _site/
+          # Le fichier reste aussi téléchargeable sous son nom d'origine.
+          cp atelier.html _site/atelier.html
+          touch _site/.nojekyll
+
+          DEFAUT="https://ailabmanager-tech.github.io/benchflow"
+          for f in _site/index.html _site/atelier.html; do
+            sed -i "s|$DEFAUT|$BASE|g" "$f"
+          done
+          # Titre descriptif pour le web ; l'application de bureau garde le court.
+          sed -i "s|<title>BenchFlow</title>|<title>BenchFlow — simulateur de pipelines en un seul fichier HTML</title>|" _site/index.html
+
+          cat > _site/robots.txt <<EOF
+          User-agent: *
+          Allow: /
+          Sitemap: $BASE/sitemap.xml
+          EOF
+
+          cat > _site/sitemap.xml <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <url><loc>$BASE/</loc><changefreq>monthly</changefreq><priority>1.0</priority></url>
+          </urlset>
+          EOF
+
+      - name: Contrôler ce qui va être publié
+        env:
+          BASE: ${{ steps.pages.outputs.base_url }}
+        run: |
+          set -euo pipefail
+          BASE="${BASE%/}"
+          echo "— adresses réécrites —"
+          grep -o 'https://[a-z0-9.-]*\.github\.io[^"]*' _site/index.html | sort -u
+          echo "— titre —"
+          grep -o '<title>[^<]*</title>' _site/index.html
+          # Si l'adresse par défaut traîne encore, la réécriture a raté : on
+          # arrête plutôt que de publier des balises qui pointent ailleurs.
+          if grep -q 'ailabmanager-tech.github.io/benchflow' _site/index.html \
+             && [ "$BASE" != "https://ailabmanager-tech.github.io/benchflow" ]; then
+            echo "✗ adresse par défaut encore présente : réécriture incomplète"; exit 1
+          fi
+          test -s _site/capture.png
+          test -s _site/robots.txt
+          test -s _site/sitemap.xml
+          echo "✓ site prêt"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deployer:
+    name: déployer
+    needs: batir
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - id: deploiement
+        uses: actions/deploy-pages@v4

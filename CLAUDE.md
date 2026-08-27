@@ -120,6 +120,15 @@ le seul cas réel. Ne pas promettre plus que ça dans le README.
 
 ## Vérifier — les quatre boucles
 
+**Publication.** Deux workflows dans `.github/workflows/` : `verification.yml`
+(bloquant, à chaque poussée) et `pages.yml` (la démo, qui relance les trois
+boucles avant de publier). L'adresse du site est réécrite au déploiement à
+partir de l'adresse réelle de Pages ; la valeur par défaut
+`https://ailabmanager-tech.github.io/benchflow` apparaît dans `atelier.html`
+(canonical, og:url, og:image, JSON-LD) et dans les badges du README. **Si le
+dépôt change de nom ou de propriétaire, ce sont les deux seuls endroits à
+corriger** — le workflow, lui, se corrige tout seul.
+
 ```
 node verifier.mjs        assertions du noyau · contraste des couleurs ·
                          engendre puis EXÉCUTE les 5 exemples en JS et en Python ·
@@ -129,8 +138,16 @@ node mutation.mjs        casse chaque correctif un par un et exige que la
                          suite devienne ROUGE (une suite verte ne prouve rien
                          tant qu'on n'a pas vérifié qu'elle sait échouer)
 node sonde.mjs <script>  charge la page dans Chrome headless via CDP, rapporte
-                         les erreurs console et exécute ton script d'inspection
+                         les erreurs console, VÉRIFIE QU'AUCUNE REQUÊTE RÉSEAU
+                         ne part (invariant 1) et exécute ton script d'inspection
+node capture.mjs         refait la capture du README (Chrome requis)
 ```
+
+Les trois premières **savent devenir rouges** — ça vient d'être corrigé pour
+deux d'entre elles : `verifier.mjs` laissait passer un échec Python avec un
+simple `~` et un code de sortie 0, et `sonde.mjs` sortait toujours 0. Une CI
+branchée dessus aurait été verte sur une vraie régression. Si tu ajoutes un
+contrôle, vérifie d'abord qu'il sait échouer.
 
 Les assertions tournent aussi **dans la page**, onglet *Moteur*. Un seul jeu de
 tests, deux endroits pour le lancer.

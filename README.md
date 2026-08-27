@@ -1,5 +1,12 @@
 # BenchFlow
 
+[![vérification](https://github.com/AILabManager-tech/benchflow/actions/workflows/verification.yml/badge.svg)](https://github.com/AILabManager-tech/benchflow/actions/workflows/verification.yml)
+[![démo](https://github.com/AILabManager-tech/benchflow/actions/workflows/pages.yml/badge.svg)](https://github.com/AILabManager-tech/benchflow/actions/workflows/pages.yml)
+![licence MIT](https://img.shields.io/badge/licence-MIT-informational)
+![version 0.1.0--alpha](https://img.shields.io/badge/version-0.1.0--alpha-orange)
+
+**▶ Essayer en ligne : <https://ailabmanager-tech.github.io/benchflow/>**
+
 *Simulateur de pipelines : on monte un schéma-bloc, on l'exécute, et on regarde les
 valeurs le traverser. Un seul fichier HTML, aucune dépendance, interface en français.*
 
@@ -238,7 +245,19 @@ endroits pour le lancer.
 ```
 node mutation.mjs        casse chaque correctif un par un et exige
                          que la suite devienne rouge
+node sonde.mjs           charge la page dans Chrome, refuse la moindre erreur
+                         console ET la moindre requête réseau
 ```
+
+Les trois commandes tournent à chaque poussée sur GitHub Actions, et la démo
+n'est pas publiée si l'une d'elles est rouge.
+
+**« Aucune requête réseau » est vérifié, pas seulement affirmé.** La sonde
+écoute le trafic : la page ne doit émettre qu'une requête, elle-même. Une
+police distante ou une image d'aperçu glissée un jour dans l'en-tête casserait
+« ouvrable hors ligne » — et publierait l'adresse IP de qui l'ouvre — sans que
+rien ne le dise. Le contrôle a été éprouvé en lui injectant une police Google :
+deux requêtes, rouge immédiat.
 
 Une suite verte ne prouve rien tant qu'on n'a pas vérifié qu'elle sait devenir rouge. Le
 banc de mutation remet le code fautif d'origine à la place de chaque correctif et refuse
@@ -277,6 +296,8 @@ verifier.mjs    lance les auto-tests du noyau sous Node, hors navigateur
 mutation.mjs    vérifie que ces auto-tests savent devenir rouges
 sonde.mjs       pilote la page dans Chrome headless pour vérifier l'interface
 capture.mjs     refait capture.png et capture-sombre.png à la commande
+.github/        vérification.yml (assertions + mutation + sonde) et
+                pages.yml (démo, qui ne publie pas sans vérifier d'abord)
 CLAUDE.md       invariants du projet, à l'usage d'un agent qui vient y toucher
 README.md       ce fichier
 LICENSE         MIT
