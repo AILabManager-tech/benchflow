@@ -1,0 +1,590 @@
+{
+ "titre": "GENESIS_1.0",
+ "sousTitre": "noyau d'agent autonome — de la commande (ou de l'événement) au run persisté",
+ "couches": [
+  {
+   "id": "C1",
+   "nom": "Déclencheurs"
+  },
+  {
+   "id": "C2",
+   "nom": "Boucle d'autonomie"
+  },
+  {
+   "id": "C3",
+   "nom": "Services transverses"
+  },
+  {
+   "id": "C4",
+   "nom": "Pipeline d'exécution"
+  },
+  {
+   "id": "C5",
+   "nom": "Convergence multi-agent (optionnel)"
+  },
+  {
+   "id": "C6",
+   "nom": "Sorties & persistance"
+  }
+ ],
+ "blocs": [
+  {
+   "id": "e1",
+   "code": "E1",
+   "nom": "CLI genesis",
+   "couche": "C1",
+   "vague": 1,
+   "etat": "ok",
+   "etiquette": "argparse",
+   "fichier": "src/genesis/__main__.py",
+   "fiche": {
+    "recoit": [
+     "argv : demo, doctor, level, mode, autonomy {on|off|step|status}, status, objective, world, inbox, daemon"
+    ],
+    "produit": [
+     "Appel direct à PipelineEngine (commande demo)",
+     "Appel à AutonomyLoop.step() (commande autonomy step)"
+    ],
+    "refuse": [
+     "autonomy step sans --goal : refuse et imprime un rappel plutôt que d'inventer un objectif",
+     "commande inconnue → parser.error, code 2"
+    ],
+    "manque": "Pas de sous-commande <code>resume</code> exposée en CLI : <code>PipelineEngine.resume()</code> n'est atteignable que via <code>JobService</code> (voir O3), jamais depuis le terminal."
+   }
+  },
+  {
+   "id": "e2",
+   "code": "E2",
+   "nom": "AutonomyDaemon",
+   "couche": "C1",
+   "vague": 1,
+   "etat": "ok",
+   "etiquette": "boucle continue",
+   "fichier": "src/genesis/runtime/daemon.py",
+   "fiche": {
+    "recoit": [
+     "RuntimeState (objectif actif requis)"
+    ],
+    "produit": [
+     "Deux modes : tick à intervalle fixe (_run_interval) ou réactif par événements (_run_event_driven)",
+     "PID file state/daemon.pid"
+    ],
+    "refuse": [
+     "Refuse de démarrer si aucun objectif actif dans RuntimeState (code 2)",
+     "S'arrête après <code>max_consecutive_failures</code> (5 par défaut) plutôt que de boucler indéfiniment sur des échecs"
+    ],
+    "manque": "Rien de bloquant, mais SIGHUP est capté sans effet réel (RuntimeState est déjà relu à chaque itération)."
+   }
+  },
+  {
+   "id": "d1",
+   "code": "D1",
+   "nom": "Watchers",
+   "couche": "C2",
+   "vague": 2,
+   "etat": "par",
+   "etiquette": "3 watchers",
+   "fichier": "src/genesis/runtime/watchers/manager.py",
+   "fiche": {
+    "recoit": [
+     "Rien en entrée — chaque watcher tourne dans son propre thread"
+    ],
+    "produit": [
+     "WatcherEvent dans une queue partagée : FileWatcher, IntervalWatcher, ThresholdWatcher (runtime/watchers/)"
+    ],
+    "refuse": [
+     "start_all() capture les exceptions par watcher plutôt que de faire échouer tout le daemon"
+    ],
+    "manque": "Seulement 3 watchers concrets existent ; aucun watcher réseau ou processus malgré les scopes <code>network_*</code>/<code>process_*</code> déjà définis dans policy/scopes.py."
+   }
+  },
+  {
+   "id": "d2",
+   "code": "D2",
+   "nom": "Couche de cohérence",
+   "couche": "C2",
+   "vague": 3,
+   "etat": "ok",
+   "etiquette": "dedup + refus",
+   "fichier": "src/genesis/runtime/event_dedup.py",
+   "fiche": {
+    "recoit": [
+     "WatcherEvent brut"
+    ],
+    "produit": [
+     "EventDeduplicator (fenêtre 60 s, clé = watcher+type+source) puis RefusalPolicy.decide() → proceed / skip / escalate_human"
+    ],
+    "refuse": [
+     "Événement déjà en cours (issue in_progress) → skip silencieux",
+     "Niveau A1 + scope destructif requis → escalate_human, jamais d'auto-exécution",
+     "Issue au-delà de max_attempts → escalate_human"
+    ],
+    "manque": "Rien. C'est le seul point du système qui peut refuser d'agir sans jamais le montrer dans le pipeline lui-même."
+   }
+  },
+  {
+   "id": "l1",
+   "code": "L1",
+   "nom": "AutonomyLoop",
+   "couche": "C2",
+   "vague": 4,
+   "etat": "ok",
+   "etiquette": "1 pas = step()",
+   "fichier": "src/genesis/runtime/autonomy_loop.py",
+   "fiche": {
+    "recoit": [
+     "AgentObjective + observations (world_snapshot si non fourni)"
+    ],
+    "produit": [
+     "Une Mission (via MissionGenerator) exécutée par PipelineEngine, puis persiste last_run_id/last_step_at dans RuntimeState"
+    ],
+    "refuse": [
+     "RuntimeState.level prime toujours sur le niveau de la mission générée — un override par mission seul est ignoré"
+    ],
+    "manque": "Continuous mode volontairement limité à un pas par appel (commentaire du fichier : le mode continu est porté par AutonomyDaemon, pas par cette classe)."
+   }
+  },
+  {
+   "id": "l2",
+   "code": "L2",
+   "nom": "MissionGenerator",
+   "couche": "C2",
+   "vague": 5,
+   "etat": "ok",
+   "etiquette": "LLM + repli déterministe",
+   "fichier": "src/genesis/runtime/mission_generator.py",
+   "fiche": {
+    "recoit": [
+     "Objective + observations + résumé de la dernière mission"
+    ],
+    "produit": [
+     "Une Mission concrète ; n'exécute jamais rien elle-même"
+    ],
+    "refuse": [
+     "Réponse LLM vide ou JSON invalide → repli sur une mission déterministe <code>system audit</code>, jamais d'exception propagée à la boucle"
+    ],
+    "manque": "Rien de bloquant : conçu explicitement pour que la boucle ne reste jamais bloquée sans mission."
+   }
+  },
+  {
+   "id": "svc-router",
+   "code": "S1",
+   "nom": "ProviderRouter",
+   "couche": "C3",
+   "vague": 6,
+   "etat": "ok",
+   "etiquette": "sélection modèle",
+   "fichier": "src/genesis/providers/router.py",
+   "fiche": {
+    "recoit": [
+     "task_type (planning/critical_reasoning/verification), risk, tier (via CostTracker)"
+    ],
+    "produit": [
+     "Route vers primary-reasoner / secondary-verifier / general-worker ; bascule OpenAI/Anthropic/Ollama si configuré (providers/real.py), sinon SandboxProvider simulé"
+    ],
+    "refuse": [
+     "Si le profil choisi est déjà general-worker et échoue, aucun repli — RuntimeError propagée (pas de fallback du fallback)"
+    ],
+    "manque": "Le seuil budget_remaining_usd<0.01 (legacy) et le paramètre tier coexistent — deux logiques de downgrade actives en parallèle, l'une pouvant masquer l'autre."
+   }
+  },
+  {
+   "id": "svc-tools",
+   "code": "S2",
+   "nom": "ToolRegistry",
+   "couche": "C3",
+   "vague": 6,
+   "etat": "ok",
+   "etiquette": "10 outils",
+   "fichier": "src/genesis/tools/registry.py",
+   "fiche": {
+    "recoit": [
+     "Nom d'outil + action + cible + scope de policy à chaque invoke()"
+    ],
+    "produit": [
+     "file_read/write/search/content_search, shell, process, system, git, http, package — chaque appel journalisé par ToolRecorder"
+    ],
+    "refuse": [
+     "Outil inconnu → ToolResult échoué, jamais d'exception qui casse la phase",
+     "Scope non autorisé par PolicyEngine → outil jamais invoqué, résultat d'échec renvoyé directement"
+    ],
+    "manque": "Rien. Chaque chemin (inconnu / refusé / exécuté) est enregistré identiquement par le recorder."
+   }
+  },
+  {
+   "id": "svc-policy",
+   "code": "S3",
+   "nom": "PolicyEngine",
+   "couche": "C3",
+   "vague": 6,
+   "etat": "ok",
+   "etiquette": "profils A1/A2/A3",
+   "fichier": "src/genesis/policy/engine.py",
+   "fiche": {
+    "recoit": [
+     "autonomy_level, action_type (scope), metadata budgétaire"
+    ],
+    "produit": [
+     "Décision allow/deny/escalate + entrée d'audit JSONL persistante (policy/scopes.py : quotas shell_command 5/10/illimité selon A1/A2/A3)"
+    ],
+    "refuse": [
+     "Dépassement de budget (coût, tokens, durée) → escalate avant même de vérifier le profil",
+     "Niveau d'autonomie inconnu → deny explicite, jamais un accès par défaut"
+    ],
+    "manque": "Rien de bloquant : c'est le module le plus défensif du système (budget vérifié avant profil, profil avant quota)."
+   }
+  },
+  {
+   "id": "p-intake",
+   "code": "P1",
+   "nom": "Phase intake",
+   "couche": "C4",
+   "vague": 6,
+   "etat": "ok",
+   "etiquette": "sans gate",
+   "fichier": "src/genesis/pipeline/engine.py",
+   "fiche": {
+    "recoit": [
+     "Mission (venant de L2 ou fournie telle quelle par demo.py)"
+    ],
+    "produit": [
+     "Un Run créé (RunStateStore), artefacts mission+intake écrits, transition enregistrée"
+    ],
+    "refuse": [
+     "Aucune validation de contenu — la seule phase du pipeline sans gate ni retry"
+    ],
+    "manque": "Aucune vérification que la Mission est bien formée avant d'entrer dans le pipeline."
+   }
+  },
+  {
+   "id": "p-plan",
+   "code": "P2",
+   "nom": "Phase plan",
+   "couche": "C4",
+   "vague": 7,
+   "etat": "ok",
+   "etiquette": "gate + retry×2",
+   "fichier": "src/genesis/pipeline/engine.py",
+   "fiche": {
+    "recoit": [
+     "Mission + réponse ProviderRouter.execute(\"planning\")"
+    ],
+    "produit": [
+     "Liste de steps ; gate PipelineGates.evaluate_plan (exige ≥2 steps)"
+    ],
+    "refuse": [
+     "<2 steps → gate fail, jusqu'à 2 tentatives (MAX_PHASE_ATTEMPTS), puis run bloqué"
+    ],
+    "manque": "Le contenu du plan n'est jamais vérifié sémantiquement, seule sa longueur compte pour le gate."
+   }
+  },
+  {
+   "id": "p-execute",
+   "code": "P3",
+   "nom": "Phase execute",
+   "couche": "C4",
+   "vague": 8,
+   "etat": "ok",
+   "etiquette": "gate + retry×2",
+   "fichier": "src/genesis/pipeline/engine.py",
+   "fiche": {
+    "recoit": [
+     "Plan validé + ToolRegistry + PolicyEngine + ProviderRouter.execute(\"critical_reasoning\")"
+    ],
+    "produit": [
+     "actions[], tool_results (file_search + shell), policy_decision ; gate exige policy=allow ET actions>0"
+    ],
+    "refuse": [
+     "policy.decision != allow → gate fail immédiat, sans lancer d'action",
+     "Aucune action documentée → gate fail même si policy=allow"
+    ],
+    "manque": "Seulement 2 outils réellement invoqués dans le pipeline v1 (file_search, shell) sur les 10 enregistrés dans ToolRegistry — les 8 autres existent mais ne sont pas câblés dans cette phase."
+   }
+  },
+  {
+   "id": "ma",
+   "code": "MA",
+   "nom": "MultiAgentOrchestrator",
+   "couche": "C5",
+   "vague": 9,
+   "etat": "par",
+   "etiquette": "flag enable_multiagent",
+   "fichier": "src/genesis/multiagent/orchestrator.py",
+   "fiche": {
+    "recoit": [
+     "Mission, worker_count, max_iterations, score_threshold (constraints de mission)"
+    ],
+    "produit": [
+     "Boucle planner→scheduler→workers→reviewer jusqu'à convergence ou max_iterations → ConvergenceState → ConvergenceGate"
+    ],
+    "refuse": [
+     "Pas de planner/worker_pool/reviewer configuré → arrêt immédiat de la boucle (break), jamais une convergence simulée"
+    ],
+    "manque": "<code>distribute_and_execute</code> exécute les workers en compréhension de liste séquentielle (<code>[w.execute(t) for t,w in assignments]</code>) — malgré le nom \"distribute\", aucun parallélisme réel n'a lieu."
+   }
+  },
+  {
+   "id": "p-verify",
+   "code": "P4",
+   "nom": "Phase verify",
+   "couche": "C4",
+   "vague": 10,
+   "etat": "ok",
+   "etiquette": "gate + retry×2",
+   "fichier": "src/genesis/pipeline/engine.py",
+   "fiche": {
+    "recoit": [
+     "gate plan + gate execute + findings_count + ProviderRouter.execute(\"verification\")"
+    ],
+    "produit": [
+     "Verifier.evaluate() → decision pass/fail ; gate exige verify=pass"
+    ],
+    "refuse": [
+     "Un seul gate amont en échec (plan ou execute) suffit à faire échouer verify, même si execute a fini par passer en retry"
+    ],
+    "manque": "constraint <code>force_verify_fail</code> permet de forcer un échec pour tester la résilience — un levier de test resté accessible via les contraintes de mission en production."
+   }
+  },
+  {
+   "id": "p-finalize",
+   "code": "P5",
+   "nom": "Phase finalize",
+   "couche": "C4",
+   "vague": 11,
+   "etat": "ok",
+   "etiquette": "sans gate",
+   "fichier": "src/genesis/pipeline/engine.py",
+   "fiche": {
+    "recoit": [
+     "Le RunReport agrégé (mission_id, run_id, outcome, findings, next_steps)"
+    ],
+    "produit": [
+     "final_report écrit, run.status=completed, écriture mémoire (O2) et artefacts (O1)"
+    ],
+    "refuse": [
+     "Même en cas de blocage (_finalize_blocked, retry épuisé sur plan/execute/verify), la mémoire et les artefacts sont quand même écrits — rien n'est perdu silencieusement"
+    ],
+    "manque": "Rien de bloquant."
+   }
+  },
+  {
+   "id": "out-artifacts",
+   "code": "O1",
+   "nom": "ArtifactStore",
+   "couche": "C6",
+   "vague": 12,
+   "etat": "ok",
+   "etiquette": "1 fichier / clé",
+   "fichier": "src/genesis/pipeline/artifacts.py",
+   "fiche": {
+    "recoit": [
+     "Un write(clé, dict) par étape de phase (mission, intake, plan, gate_plan, execute, gate_execute, convergence_state, verify, gate_verify, final_report, telemetry, cost_state…)"
+    ],
+    "produit": [
+     "Un fichier JSON par clé sous runs/<run_id>/artifacts/"
+    ],
+    "refuse": [
+     "Aucune validation de schéma à l'écriture — accepte tout dict"
+    ],
+    "manque": "Pas de compaction ni de rétention : chaque run accumule ses artefacts sans purge automatique."
+   }
+  },
+  {
+   "id": "out-selfmodel",
+   "code": "O2",
+   "nom": "Self-model",
+   "couche": "C6",
+   "vague": 12,
+   "etat": "ok",
+   "etiquette": "bootstrap + épisodique + sémantique",
+   "fichier": "src/genesis/self_model/bootstrap.py",
+   "fiche": {
+    "recoit": [
+     "mission, run, report en fin de run"
+    ],
+    "produit": [
+     "BootstrapStore.write() (identity.py + introspect.py inclus), EpisodicStore.append() (historique des runs), SemanticStore.remember() (faits identité/préférences, ex. operator=gear-code)"
+    ],
+    "refuse": [
+     "Rien d'observé — pas de garde particulière trouvée dans bootstrap.py"
+    ],
+    "manque": "À confirmer : aucune limite de croissance visible sur EpisodicStore au-delà de <code>recent(limit=5)</code> côté lecture."
+   }
+  },
+  {
+   "id": "out-platform",
+   "code": "O3",
+   "nom": "Plateforme (Dashboard)",
+   "couche": "C6",
+   "vague": 13,
+   "etat": "par",
+   "etiquette": "jobs + dashboard.html",
+   "fichier": "src/genesis/platform/dashboard/service.py",
+   "fiche": {
+    "recoit": [
+     "Résultats de run (O1) + mémoire (O2) ; ou directement un run_id pour resume()"
+    ],
+    "produit": [
+     "JobService : JobRecord + index.json ; DashboardService/DashboardRenderer : agrège jobs, runs, policy_audit, bootstrap, memory, telemetry, convergence → dashboard.html"
+    ],
+    "refuse": [
+     "Rien d'observé côté garde explicite dans jobs/service.py"
+    ],
+    "manque": "Le dossier <code>platform/jobs/</code> (JobService, seul point d'entrée de <code>PipelineEngine.resume()</code>) existe sur le disque mais n'a jamais été commité : la reprise après blocage disparaît au prochain clone."
+   }
+  }
+ ],
+ "aretes": [
+  [
+   "e1",
+   "l1",
+   "commande: autonomy step"
+  ],
+  [
+   "e1",
+   "p-intake",
+   "commande: demo (mission fixe)"
+  ],
+  [
+   "e2",
+   "d1",
+   "démarre les watchers"
+  ],
+  [
+   "d1",
+   "d2",
+   "WatcherEvent"
+  ],
+  [
+   "d2",
+   "l1",
+   "proceed"
+  ],
+  [
+   "l1",
+   "l2",
+   "objectif + observations"
+  ],
+  [
+   "l2",
+   "p-intake",
+   "Mission générée"
+  ],
+  [
+   "svc-router",
+   "p-plan",
+   "execute(planning)"
+  ],
+  [
+   "p-intake",
+   "p-plan",
+   ""
+  ],
+  [
+   "svc-router",
+   "p-execute",
+   "execute(critical_reasoning)"
+  ],
+  [
+   "svc-tools",
+   "p-execute",
+   "invoke(file_search, shell)"
+  ],
+  [
+   "svc-policy",
+   "p-execute",
+   "evaluate(scope)"
+  ],
+  [
+   "p-plan",
+   "p-execute",
+   ""
+  ],
+  [
+   "p-execute",
+   "ma",
+   "si enable_multiagent"
+  ],
+  [
+   "svc-router",
+   "ma",
+   "execute() par worker"
+  ],
+  [
+   "p-execute",
+   "p-verify",
+   "si multiagent désactivé"
+  ],
+  [
+   "ma",
+   "p-verify",
+   "gate convergence"
+  ],
+  [
+   "svc-router",
+   "p-verify",
+   "execute(verification)"
+  ],
+  [
+   "p-verify",
+   "p-finalize",
+   ""
+  ],
+  [
+   "p-intake",
+   "out-artifacts",
+   "mission, intake"
+  ],
+  [
+   "p-plan",
+   "out-artifacts",
+   "plan, gate_plan"
+  ],
+  [
+   "p-execute",
+   "out-artifacts",
+   "execute, gate_execute"
+  ],
+  [
+   "ma",
+   "out-artifacts",
+   "convergence_state, gate_convergence"
+  ],
+  [
+   "p-verify",
+   "out-artifacts",
+   "verify, gate_verify"
+  ],
+  [
+   "p-finalize",
+   "out-artifacts",
+   "final_report"
+  ],
+  [
+   "p-finalize",
+   "out-selfmodel",
+   "episodic + semantic + bootstrap"
+  ],
+  [
+   "p-finalize",
+   "out-platform",
+   "DashboardRenderer.render() (chemin demo)"
+  ],
+  [
+   "out-artifacts",
+   "out-platform",
+   "run_summaries, telemetry"
+  ],
+  [
+   "out-selfmodel",
+   "out-platform",
+   "memory_view"
+  ],
+  [
+   "out-platform",
+   "p-plan",
+   "JobService.resume() : non commité",
+   "b"
+  ]
+ ]
+}

@@ -1,0 +1,568 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>GENESIS_1.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+<style>
+:root{
+  --ground:#EDEFF2; --surface:#FFFFFF; --surface-2:#F6F8FA; --surface-3:#E4E8ED;
+  --ink:#10161D; --ink-2:#3D4A57; --ink-3:#6B7986;
+  --line:#D2D9E0; --line-2:#BCC6D0;
+  --accent:#0E7C86; --accent-soft:#D6EDEF; --accent-ink:#095A62;
+  --ok:#2E7D5B; --ok-soft:#DCEFE5;
+  --warn:#B07A12; --warn-soft:#F7EBD2;
+  --crit:#B33A34; --crit-soft:#F7E0DE;
+  --abst:#5A6B7D; --abst-soft:#E3E8ED;
+  --grid:#DDE2E8;
+  --shadow:0 1px 2px rgba(16,22,29,.06),0 4px 12px rgba(16,22,29,.05);
+  --glow:0 0 0 4px rgba(14,124,134,.16);
+  --L1:#4E6FA8; --L1b:rgba(78,111,168,.07); --L1e:rgba(78,111,168,.26);
+  --L2:#7355A0; --L2b:rgba(115,85,160,.07); --L2e:rgba(115,85,160,.26);
+  --L3:#0E7C86; --L3b:rgba(14,124,134,.07); --L3e:rgba(14,124,134,.26);
+  --L4:#A8478A; --L4b:rgba(168,71,138,.07); --L4e:rgba(168,71,138,.26);
+  --L5:#8A6D3B; --L5b:rgba(138,109,59,.07); --L5e:rgba(138,109,59,.26);
+  --L6:#3E7F9C; --L6b:rgba(62,127,156,.07); --L6e:rgba(62,127,156,.26);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0B1117; --surface:#131B23; --surface-2:#18222B; --surface-3:#22303B;
+    --ink:#E4E9EE; --ink-2:#A9B6C2; --ink-3:#7A8996;
+    --line:#25323D; --line-2:#33434F;
+    --accent:#35C6D4; --accent-soft:#0E3A40; --accent-ink:#7FDDE7;
+    --ok:#4BB183; --ok-soft:#12332A;
+    --warn:#D8A33F; --warn-soft:#3A2F14;
+    --crit:#E0645C; --crit-soft:#3B1E1C;
+    --abst:#8497A8; --abst-soft:#1D2833;
+    --grid:#18222B;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
+    --glow:0 0 0 4px rgba(53,198,212,.2);
+    --L1:#7FA0DC; --L1b:rgba(127,160,220,.10); --L1e:rgba(127,160,220,.30);
+    --L2:#A98CD8; --L2b:rgba(169,140,216,.10); --L2e:rgba(169,140,216,.30);
+    --L3:#35C6D4; --L3b:rgba(53,198,212,.10); --L3e:rgba(53,198,212,.30);
+    --L4:#DC80BE; --L4b:rgba(220,128,190,.10); --L4e:rgba(220,128,190,.30);
+    --L5:#C4A465; --L5b:rgba(196,164,101,.10); --L5e:rgba(196,164,101,.30);
+    --L6:#79B8D4; --L6b:rgba(121,184,212,.10); --L6e:rgba(121,184,212,.30);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0B1117; --surface:#131B23; --surface-2:#18222B; --surface-3:#22303B;
+  --ink:#E4E9EE; --ink-2:#A9B6C2; --ink-3:#7A8996;
+  --line:#25323D; --line-2:#33434F;
+  --accent:#35C6D4; --accent-soft:#0E3A40; --accent-ink:#7FDDE7;
+  --ok:#4BB183; --ok-soft:#12332A;
+  --warn:#D8A33F; --warn-soft:#3A2F14;
+  --crit:#E0645C; --crit-soft:#3B1E1C;
+  --abst:#8497A8; --abst-soft:#1D2833;
+  --grid:#18222B;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
+  --glow:0 0 0 4px rgba(53,198,212,.2);
+  --L1:#7FA0DC; --L1b:rgba(127,160,220,.10); --L1e:rgba(127,160,220,.30);
+    --L2:#A98CD8; --L2b:rgba(169,140,216,.10); --L2e:rgba(169,140,216,.30);
+    --L3:#35C6D4; --L3b:rgba(53,198,212,.10); --L3e:rgba(53,198,212,.30);
+    --L4:#DC80BE; --L4b:rgba(220,128,190,.10); --L4e:rgba(220,128,190,.30);
+    --L5:#C4A465; --L5b:rgba(196,164,101,.10); --L5e:rgba(196,164,101,.30);
+    --L6:#79B8D4; --L6b:rgba(121,184,212,.10); --L6e:rgba(121,184,212,.30);
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,sans-serif; font-size:14px; line-height:1.5}
+h1,h2,h3{margin:0; font-weight:600; letter-spacing:-.012em; text-wrap:balance}
+button,select{font:inherit; color:inherit; cursor:pointer}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+code{font-family:"IBM Plex Mono",monospace; font-size:.88em; background:var(--surface-2); border:1px solid var(--line); border-radius:4px; padding:1px 5px}
+.lbl{font-size:10.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3)}
+
+/* ---------- barre ---------- */
+.bar{display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:11px 18px;
+  background:var(--surface); border-bottom:1px solid var(--line)}
+.bar h1{font-size:16px; margin-right:4px}
+.bar .sp{flex:1}
+.ctl{display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--ink-2)}
+select{font-size:12.5px; padding:5px 8px; border-radius:5px; border:1px solid var(--line-2); background:var(--surface-2)}
+.sw{position:relative; width:36px; height:20px; border-radius:99px; background:var(--line-2); border:0; flex:none; transition:background .15s}
+.sw::after{content:""; position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:var(--surface); transition:transform .15s}
+.sw[aria-pressed="true"]{background:var(--accent)}
+.sw[aria-pressed="true"]::after{transform:translateX(16px)}
+.btn{padding:7px 14px; border-radius:6px; border:1px solid var(--line-2); background:var(--surface-2); font-size:13px; font-weight:600}
+.btn:hover{border-color:var(--accent); color:var(--accent-ink)}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+.btn.primary:hover{filter:brightness(1.09); color:#fff}
+.btn:disabled{opacity:.45; cursor:default}
+
+/* ---------- canevas ---------- */
+.canvas-wrap{overflow:auto; cursor:grab; user-select:none; -webkit-user-select:none; background:
+  linear-gradient(var(--grid) 1px, transparent 1px) 0 0/22px 22px,
+  linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/22px 22px, var(--ground);
+  border-bottom:1px solid var(--line)}
+.canvas-wrap.grabbing{cursor:grabbing}
+.csize{position:relative}
+.canvas{position:relative; transform-origin:0 0}
+.canvas svg.edges{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
+
+.edge{fill:none; stroke:var(--ink-3); stroke-width:2.4; stroke-linejoin:miter; stroke-linecap:butt}
+.edge.live{stroke:var(--accent); stroke-width:3.2; stroke-dasharray:7 6; animation:dash 620ms linear infinite}
+.edge.done{stroke:var(--accent); opacity:.9}
+.edge.dead{stroke:var(--abst); stroke-dasharray:3 5; opacity:.55}
+.edge.side{stroke-dasharray:none}
+.edge.back{stroke:var(--ok); stroke-width:2.8; stroke-dasharray:9 5}
+.edge.back.off{stroke:var(--abst); opacity:.32}
+.ah{fill:var(--ink-3)} .ah.done{fill:var(--accent); opacity:.9} .ah.live{fill:var(--accent)}
+.ah.dead{fill:var(--abst); opacity:.55} .ah.back{fill:var(--ok)} .ah.back.off{fill:var(--abst); opacity:.32}
+@keyframes dash{to{stroke-dashoffset:-26}}
+@media (prefers-reduced-motion:reduce){.edge.live{animation:none}}
+.elbl{font-size:10.5px; font-family:"IBM Plex Mono",monospace; fill:var(--ink-2); font-weight:500;
+  paint-order:stroke; stroke:var(--ground); stroke-width:3.5px; stroke-linejoin:round}
+
+/* ---------- noeud ---------- */
+.node{position:absolute; width:150px; height:94px; overflow:hidden;
+  background:var(--surface); border:2.2px solid var(--line-2);
+  background-image:linear-gradient(160deg,var(--tint) 0%,transparent 62%);
+  border-radius:3px; border-left-width:6px; box-shadow:var(--shadow); padding:9px 10px; cursor:pointer; text-align:left;
+  transition:border-color .18s, box-shadow .18s, transform .18s}
+.node:hover{transform:translateY(-1px)}
+.node .top{display:flex; align-items:center; gap:6px; margin-bottom:3px}
+.node .code{font-family:"IBM Plex Mono",monospace; font-size:9.5px; font-weight:700; color:var(--lc); letter-spacing:.06em}
+.node .nm{font-size:12.5px; font-weight:600; line-height:1.25; display:block; color:var(--ink)}
+.node .mt{font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--ink-2); margin-top:6px; display:block;
+  min-height:15px; line-height:1.3; background:var(--surface-2); border-radius:3px; padding:2px 5px; margin-left:-2px; margin-right:-2px}
+.node .st{margin-left:auto; width:11px; height:11px; border-radius:50%; background:var(--line-2); flex:none}
+
+.node[data-s="idle"]{opacity:.82}
+.node[data-s="wait"]{opacity:.72; border-style:dashed}
+.node[data-s="run"]{border-top-color:var(--accent);border-right-color:var(--accent);border-bottom-color:var(--accent); box-shadow:var(--shadow),var(--glow); animation:pulse 1.15s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:var(--shadow),var(--glow)}50%{box-shadow:var(--shadow),0 0 0 7px transparent}}
+@media (prefers-reduced-motion:reduce){.node[data-s="run"]{animation:none}}
+.node[data-s="run"] .st{background:none; border:2px solid var(--accent-soft); border-top-color:var(--accent); animation:spin .62s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.node[data-s="run"] .st{animation:none; background:var(--accent); border:0}}
+.node[data-s="ok"]{border-top-color:var(--ok);border-right-color:var(--ok);border-bottom-color:var(--ok)} .node[data-s="ok"] .st{background:var(--ok)}
+.node[data-s="warn"]{border-top-color:var(--warn);border-right-color:var(--warn);border-bottom-color:var(--warn)} .node[data-s="warn"] .st{background:var(--warn)}
+.node[data-s="crit"]{border-top-color:var(--crit);border-right-color:var(--crit);border-bottom-color:var(--crit)} .node[data-s="crit"] .st{background:var(--crit)}
+.node[data-s="skip"]{border-style:dashed; border-top-color:var(--abst);border-right-color:var(--abst);border-bottom-color:var(--abst); opacity:.55}
+.node[data-s="skip"] .st{background:var(--abst)}
+.node[aria-pressed="true"]{outline:2px solid var(--accent); outline-offset:2px}
+
+.node .tagabs{position:absolute; top:-8px; right:-6px; font-size:8.5px; font-weight:700;
+  letter-spacing:.05em; text-transform:uppercase; padding:2px 6px; border-radius:99px;
+  background:var(--crit-soft); color:var(--crit); border:1px solid var(--crit)}
+.node .tagsup{position:absolute; top:-8px; right:-6px; font-size:8.5px; font-weight:700;
+  letter-spacing:.05em; text-transform:uppercase; padding:2px 6px; border-radius:99px;
+  background:var(--abst-soft); color:var(--abst); border:1px solid var(--abst)}
+
+.grp{position:absolute; border:1px solid var(--line-2); border-radius:6px; pointer-events:none; z-index:0}
+.node{z-index:2} .canvas svg.edges{z-index:1}
+.grp span{position:absolute; top:-9px; left:12px; background:var(--ground); padding:0 8px; border-radius:3px;
+  font-size:9.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3)}
+
+/* ---------- bas ---------- */
+.bottom{display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:1px; background:var(--line)}
+@media (max-width:960px){.bottom{grid-template-columns:1fr}}
+.pane{background:var(--ground); padding:15px; min-width:0}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:8px; box-shadow:var(--shadow)}
+.card .hd{padding:10px 14px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:9px; flex-wrap:wrap}
+.card .bd{padding:14px}
+.badge{font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; padding:3px 8px; border-radius:99px}
+.b-ok{background:var(--ok-soft); color:var(--ok)} .b-par{background:var(--warn-soft); color:var(--warn)}
+.b-abs{background:var(--crit-soft); color:var(--crit)} .b-sup{background:var(--abst-soft); color:var(--abst)}
+.b-con{background:var(--surface-3); color:var(--abst)}
+.path{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--accent-ink); word-break:break-all}
+.cols{display:grid; grid-template-columns:repeat(auto-fit,minmax(215px,1fr)); gap:17px}
+.blk .lbl{display:block; margin-bottom:5px}
+.blk ul{margin:0; padding-left:17px; font-size:12.5px; line-height:1.55; color:var(--ink-2)}
+.blk li{margin-bottom:3px}
+.blk p{margin:0; font-size:12.5px; color:var(--ink-2); line-height:1.55}
+.refus{border-left:2px solid var(--crit); padding-left:10px}
+.run-bilan{padding:11px 14px; background:var(--surface-2); border-bottom:1px solid var(--line);
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.run-bilan .sortie{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-2);
+  background:var(--surface); border:1px solid var(--line); border-radius:4px; padding:3px 8px}
+.run-bilan .jrn{flex-basis:100%; margin:2px 0 0; padding-left:17px; font-size:12px;
+  color:var(--ink-2); line-height:1.5}
+.log{max-height:200px; overflow:auto; font-family:"IBM Plex Mono",monospace; font-size:11px; line-height:1.7}
+.log div{white-space:pre-wrap; word-break:break-word}
+.log .t{color:var(--ink-3)}
+.log .ok{color:var(--ok)} .log .warn{color:var(--warn)} .log .crit{color:var(--crit)} .log .acc{color:var(--accent-ink)} .log .abst{color:var(--abst)}
+.legend{display:flex; gap:6px 15px; flex-wrap:wrap; font-size:11.5px; color:var(--ink-2); padding:9px 14px; border-top:1px solid var(--line); background:var(--surface-2)}
+.legend i{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; vertical-align:-1px}
+</style>
+
+<div class="bar">
+  <h1 id="titre">GENESIS_1.0</h1>
+  <span class="lbl" id="soustitre"></span>
+  <span class="ctl" id="ctl-scn"></span>
+  <span id="ctl-pol" style="display:contents"></span>
+  <div class="ctl"><span class="lbl">Vitesse</span>
+    <select id="spd"><option value="1.6">lente</option><option value="1" selected>normale</option><option value="0.45">rapide</option></select>
+  </div>
+  <div class="sp"></div>
+  <button class="btn primary" id="play">Exécuter</button>
+  <button class="btn" id="step">Pas à pas</button>
+  <button class="btn" id="reset">Réinitialiser</button>
+  <span class="ctl" style="gap:3px">
+    <button class="btn" id="zout" style="padding:6px 11px" title="Dézoomer">−</button>
+    <button class="btn" id="zfit" style="padding:6px 10px; min-width:58px" title="Ajuster à la fenêtre"><span id="zlbl">100 %</span></button>
+    <button class="btn" id="zin" style="padding:6px 11px" title="Zoomer">+</button>
+  </span>
+  <button class="btn" id="theme">Thème</button>
+</div>
+
+<div class="canvas-wrap">
+  <div class="csize" id="csize"><div class="canvas" id="canvas">
+    <svg class="edges" id="edges" preserveAspectRatio="none" aria-hidden="true"></svg>
+  </div></div>
+</div>
+
+<div class="legend" id="leg-couches" style="border-top:0;padding-bottom:4px"></div>
+<div class="legend" id="leg-etats"></div>
+
+<div class="bottom">
+  <div class="pane"><div class="card" id="detail"></div></div>
+  <div class="pane"><div class="card">
+    <div class="hd"><span class="lbl">Journal</span><span style="flex:1"></span><span class="lbl" id="clock">—</span></div>
+    <div class="bd log" id="log"></div>
+  </div></div>
+</div>
+
+<script>
+"use strict";
+const SCHEMA = {"titre": "GENESIS_1.0", "sousTitre": "noyau d'agent autonome — de la commande (ou de l'événement) au run persisté", "couches": [{"id": "C1", "nom": "Déclencheurs"}, {"id": "C2", "nom": "Boucle d'autonomie"}, {"id": "C3", "nom": "Services transverses"}, {"id": "C4", "nom": "Pipeline d'exécution"}, {"id": "C5", "nom": "Convergence multi-agent (optionnel)"}, {"id": "C6", "nom": "Sorties & persistance"}], "blocs": [{"id": "e1", "code": "E1", "nom": "CLI genesis", "couche": "C1", "vague": 1, "etat": "ok", "etiquette": "argparse", "fichier": "src/genesis/__main__.py", "fiche": {"recoit": ["argv : demo, doctor, level, mode, autonomy {on|off|step|status}, status, objective, world, inbox, daemon"], "produit": ["Appel direct à PipelineEngine (commande demo)", "Appel à AutonomyLoop.step() (commande autonomy step)"], "refuse": ["autonomy step sans --goal : refuse et imprime un rappel plutôt que d'inventer un objectif", "commande inconnue → parser.error, code 2"], "manque": "Pas de sous-commande <code>resume</code> exposée en CLI : <code>PipelineEngine.resume()</code> n'est atteignable que via <code>JobService</code> (voir O3), jamais depuis le terminal."}, "x": 40, "y": 228}, {"id": "e2", "code": "E2", "nom": "AutonomyDaemon", "couche": "C1", "vague": 1, "etat": "ok", "etiquette": "boucle continue", "fichier": "src/genesis/runtime/daemon.py", "fiche": {"recoit": ["RuntimeState (objectif actif requis)"], "produit": ["Deux modes : tick à intervalle fixe (_run_interval) ou réactif par événements (_run_event_driven)", "PID file state/daemon.pid"], "refuse": ["Refuse de démarrer si aucun objectif actif dans RuntimeState (code 2)", "S'arrête après <code>max_consecutive_failures</code> (5 par défaut) plutôt que de boucler indéfiniment sur des échecs"], "manque": "Rien de bloquant, mais SIGHUP est capté sans effet réel (RuntimeState est déjà relu à chaque itération)."}, "x": 40, "y": 346}, {"id": "d1", "code": "D1", "nom": "Watchers", "couche": "C2", "vague": 2, "etat": "par", "etiquette": "3 watchers", "fichier": "src/genesis/runtime/watchers/manager.py", "fiche": {"recoit": ["Rien en entrée — chaque watcher tourne dans son propre thread"], "produit": ["WatcherEvent dans une queue partagée : FileWatcher, IntervalWatcher, ThresholdWatcher (runtime/watchers/)"], "refuse": ["start_all() capture les exceptions par watcher plutôt que de faire échouer tout le daemon"], "manque": "Seulement 3 watchers concrets existent ; aucun watcher réseau ou processus malgré les scopes <code>network_*</code>/<code>process_*</code> déjà définis dans policy/scopes.py."}, "x": 436, "y": 287}, {"id": "d2", "code": "D2", "nom": "Couche de cohérence", "couche": "C2", "vague": 3, "etat": "ok", "etiquette": "dedup + refus", "fichier": "src/genesis/runtime/event_dedup.py", "fiche": {"recoit": ["WatcherEvent brut"], "produit": ["EventDeduplicator (fenêtre 60 s, clé = watcher+type+source) puis RefusalPolicy.decide() → proceed / skip / escalate_human"], "refuse": ["Événement déjà en cours (issue in_progress) → skip silencieux", "Niveau A1 + scope destructif requis → escalate_human, jamais d'auto-exécution", "Issue au-delà de max_attempts → escalate_human"], "manque": "Rien. C'est le seul point du système qui peut refuser d'agir sans jamais le montrer dans le pipeline lui-même."}, "x": 724, "y": 287}, {"id": "l1", "code": "L1", "nom": "AutonomyLoop", "couche": "C2", "vague": 4, "etat": "ok", "etiquette": "1 pas = step()", "fichier": "src/genesis/runtime/autonomy_loop.py", "fiche": {"recoit": ["AgentObjective + observations (world_snapshot si non fourni)"], "produit": ["Une Mission (via MissionGenerator) exécutée par PipelineEngine, puis persiste last_run_id/last_step_at dans RuntimeState"], "refuse": ["RuntimeState.level prime toujours sur le niveau de la mission générée — un override par mission seul est ignoré"], "manque": "Continuous mode volontairement limité à un pas par appel (commentaire du fichier : le mode continu est porté par AutonomyDaemon, pas par cette classe)."}, "x": 980, "y": 287}, {"id": "l2", "code": "L2", "nom": "MissionGenerator", "couche": "C2", "vague": 5, "etat": "ok", "etiquette": "LLM + repli déterministe", "fichier": "src/genesis/runtime/mission_generator.py", "fiche": {"recoit": ["Objective + observations + résumé de la dernière mission"], "produit": ["Une Mission concrète ; n'exécute jamais rien elle-même"], "refuse": ["Réponse LLM vide ou JSON invalide → repli sur une mission déterministe <code>system audit</code>, jamais d'exception propagée à la boucle"], "manque": "Rien de bloquant : conçu explicitement pour que la boucle ne reste jamais bloquée sans mission."}, "x": 1338, "y": 287}, {"id": "svc-router", "code": "S1", "nom": "ProviderRouter", "couche": "C3", "vague": 6, "etat": "ok", "etiquette": "sélection modèle", "fichier": "src/genesis/providers/router.py", "fiche": {"recoit": ["task_type (planning/critical_reasoning/verification), risk, tier (via CostTracker)"], "produit": ["Route vers primary-reasoner / secondary-verifier / general-worker ; bascule OpenAI/Anthropic/Ollama si configuré (providers/real.py), sinon SandboxProvider simulé"], "refuse": ["Si le profil choisi est déjà general-worker et échoue, aucun repli — RuntimeError propagée (pas de fallback du fallback)"], "manque": "Le seuil budget_remaining_usd<0.01 (legacy) et le paramètre tier coexistent — deux logiques de downgrade actives en parallèle, l'une pouvant masquer l'autre."}, "x": 1645, "y": 110}, {"id": "svc-tools", "code": "S2", "nom": "ToolRegistry", "couche": "C3", "vague": 6, "etat": "ok", "etiquette": "10 outils", "fichier": "src/genesis/tools/registry.py", "fiche": {"recoit": ["Nom d'outil + action + cible + scope de policy à chaque invoke()"], "produit": ["file_read/write/search/content_search, shell, process, system, git, http, package — chaque appel journalisé par ToolRecorder"], "refuse": ["Outil inconnu → ToolResult échoué, jamais d'exception qui casse la phase", "Scope non autorisé par PolicyEngine → outil jamais invoqué, résultat d'échec renvoyé directement"], "manque": "Rien. Chaque chemin (inconnu / refusé / exécuté) est enregistré identiquement par le recorder."}, "x": 1645, "y": 228}, {"id": "svc-policy", "code": "S3", "nom": "PolicyEngine", "couche": "C3", "vague": 6, "etat": "ok", "etiquette": "profils A1/A2/A3", "fichier": "src/genesis/policy/engine.py", "fiche": {"recoit": ["autonomy_level, action_type (scope), metadata budgétaire"], "produit": ["Décision allow/deny/escalate + entrée d'audit JSONL persistante (policy/scopes.py : quotas shell_command 5/10/illimité selon A1/A2/A3)"], "refuse": ["Dépassement de budget (coût, tokens, durée) → escalate avant même de vérifier le profil", "Niveau d'autonomie inconnu → deny explicite, jamais un accès par défaut"], "manque": "Rien de bloquant : c'est le module le plus défensif du système (budget vérifié avant profil, profil avant quota)."}, "x": 1645, "y": 346}, {"id": "p-intake", "code": "P1", "nom": "Phase intake", "couche": "C4", "vague": 6, "etat": "ok", "etiquette": "sans gate", "fichier": "src/genesis/pipeline/engine.py", "fiche": {"recoit": ["Mission (venant de L2 ou fournie telle quelle par demo.py)"], "produit": ["Un Run créé (RunStateStore), artefacts mission+intake écrits, transition enregistrée"], "refuse": ["Aucune validation de contenu — la seule phase du pipeline sans gate ni retry"], "manque": "Aucune vérification que la Mission est bien formée avant d'entrer dans le pipeline."}, "x": 1645, "y": 464}, {"id": "p-plan", "code": "P2", "nom": "Phase plan", "couche": "C4", "vague": 7, "etat": "ok", "etiquette": "gate + retry×2", "fichier": "src/genesis/pipeline/engine.py", "fiche": {"recoit": ["Mission + réponse ProviderRouter.execute(\"planning\")"], "produit": ["Liste de steps ; gate PipelineGates.evaluate_plan (exige ≥2 steps)"], "refuse": ["<2 steps → gate fail, jusqu'à 2 tentatives (MAX_PHASE_ATTEMPTS), puis run bloqué"], "manque": "Le contenu du plan n'est jamais vérifié sémantiquement, seule sa longueur compte pour le gate."}, "x": 2028, "y": 287}, {"id": "p-execute", "code": "P3", "nom": "Phase execute", "couche": "C4", "vague": 8, "etat": "ok", "etiquette": "gate + retry×2", "fichier": "src/genesis/pipeline/engine.py", "fiche": {"recoit": ["Plan validé + ToolRegistry + PolicyEngine + ProviderRouter.execute(\"critical_reasoning\")"], "produit": ["actions[], tool_results (file_search + shell), policy_decision ; gate exige policy=allow ET actions>0"], "refuse": ["policy.decision != allow → gate fail immédiat, sans lancer d'action", "Aucune action documentée → gate fail même si policy=allow"], "manque": "Seulement 2 outils réellement invoqués dans le pipeline v1 (file_search, shell) sur les 10 enregistrés dans ToolRegistry — les 8 autres existent mais ne sont pas câblés dans cette phase."}, "x": 2335, "y": 287}, {"id": "ma", "code": "MA", "nom": "MultiAgentOrchestrator", "couche": "C5", "vague": 9, "etat": "par", "etiquette": "flag enable_multiagent", "fichier": "src/genesis/multiagent/orchestrator.py", "fiche": {"recoit": ["Mission, worker_count, max_iterations, score_threshold (constraints de mission)"], "produit": ["Boucle planner→scheduler→workers→reviewer jusqu'à convergence ou max_iterations → ConvergenceState → ConvergenceGate"], "refuse": ["Pas de planner/worker_pool/reviewer configuré → arrêt immédiat de la boucle (break), jamais une convergence simulée"], "manque": "<code>distribute_and_execute</code> exécute les workers en compréhension de liste séquentielle (<code>[w.execute(t) for t,w in assignments]</code>) — malgré le nom \"distribute\", aucun parallélisme réel n'a lieu."}, "x": 2693, "y": 287}, {"id": "p-verify", "code": "P4", "nom": "Phase verify", "couche": "C4", "vague": 10, "etat": "ok", "etiquette": "gate + retry×2", "fichier": "src/genesis/pipeline/engine.py", "fiche": {"recoit": ["gate plan + gate execute + findings_count + ProviderRouter.execute(\"verification\")"], "produit": ["Verifier.evaluate() → decision pass/fail ; gate exige verify=pass"], "refuse": ["Un seul gate amont en échec (plan ou execute) suffit à faire échouer verify, même si execute a fini par passer en retry"], "manque": "constraint <code>force_verify_fail</code> permet de forcer un échec pour tester la résilience — un levier de test resté accessible via les contraintes de mission en production."}, "x": 3127, "y": 287}, {"id": "p-finalize", "code": "P5", "nom": "Phase finalize", "couche": "C4", "vague": 11, "etat": "ok", "etiquette": "sans gate", "fichier": "src/genesis/pipeline/engine.py", "fiche": {"recoit": ["Le RunReport agrégé (mission_id, run_id, outcome, findings, next_steps)"], "produit": ["final_report écrit, run.status=completed, écriture mémoire (O2) et artefacts (O1)"], "refuse": ["Même en cas de blocage (_finalize_blocked, retry épuisé sur plan/execute/verify), la mémoire et les artefacts sont quand même écrits — rien n'est perdu silencieusement"], "manque": "Rien de bloquant."}, "x": 3459, "y": 287}, {"id": "out-artifacts", "code": "O1", "nom": "ArtifactStore", "couche": "C6", "vague": 12, "etat": "ok", "etiquette": "1 fichier / clé", "fichier": "src/genesis/pipeline/artifacts.py", "fiche": {"recoit": ["Un write(clé, dict) par étape de phase (mission, intake, plan, gate_plan, execute, gate_execute, convergence_state, verify, gate_verify, final_report, telemetry, cost_state…)"], "produit": ["Un fichier JSON par clé sous runs/<run_id>/artifacts/"], "refuse": ["Aucune validation de schéma à l'écriture — accepte tout dict"], "manque": "Pas de compaction ni de rétention : chaque run accumule ses artefacts sans purge automatique."}, "x": 3925, "y": 228}, {"id": "out-selfmodel", "code": "O2", "nom": "Self-model", "couche": "C6", "vague": 12, "etat": "ok", "etiquette": "bootstrap + épisodique + sémantique", "fichier": "src/genesis/self_model/bootstrap.py", "fiche": {"recoit": ["mission, run, report en fin de run"], "produit": ["BootstrapStore.write() (identity.py + introspect.py inclus), EpisodicStore.append() (historique des runs), SemanticStore.remember() (faits identité/préférences, ex. operator=gear-code)"], "refuse": ["Rien d'observé — pas de garde particulière trouvée dans bootstrap.py"], "manque": "À confirmer : aucune limite de croissance visible sur EpisodicStore au-delà de <code>recent(limit=5)</code> côté lecture."}, "x": 3925, "y": 346}, {"id": "out-platform", "code": "O3", "nom": "Plateforme (Dashboard)", "couche": "C6", "vague": 13, "etat": "par", "etiquette": "jobs + dashboard.html", "fichier": "src/genesis/platform/dashboard/service.py", "fiche": {"recoit": ["Résultats de run (O1) + mémoire (O2) ; ou directement un run_id pour resume()"], "produit": ["JobService : JobRecord + index.json ; DashboardService/DashboardRenderer : agrège jobs, runs, policy_audit, bootstrap, memory, telemetry, convergence → dashboard.html"], "refuse": ["Rien d'observé côté garde explicite dans jobs/service.py"], "manque": "Le dossier <code>platform/jobs/</code> (JobService, seul point d'entrée de <code>PipelineEngine.resume()</code>) existe sur le disque mais n'a jamais été commité : la reprise après blocage disparaît au prochain clone."}, "x": 4289, "y": 287}], "aretes": [["e1", "l1", "commande: autonomy step"], ["e1", "p-intake", "commande: demo (mission fixe)"], ["e2", "d1", "démarre les watchers"], ["d1", "d2", "WatcherEvent"], ["d2", "l1", "proceed"], ["l1", "l2", "objectif + observations"], ["l2", "p-intake", "Mission générée"], ["svc-router", "p-plan", "execute(planning)"], ["p-intake", "p-plan", ""], ["svc-router", "p-execute", "execute(critical_reasoning)"], ["svc-tools", "p-execute", "invoke(file_search, shell)"], ["svc-policy", "p-execute", "evaluate(scope)"], ["p-plan", "p-execute", ""], ["p-execute", "ma", "si enable_multiagent"], ["svc-router", "ma", "execute() par worker"], ["p-execute", "p-verify", "si multiagent désactivé"], ["ma", "p-verify", "gate convergence"], ["svc-router", "p-verify", "execute(verification)"], ["p-verify", "p-finalize", ""], ["p-intake", "out-artifacts", "mission, intake"], ["p-plan", "out-artifacts", "plan, gate_plan"], ["p-execute", "out-artifacts", "execute, gate_execute"], ["ma", "out-artifacts", "convergence_state, gate_convergence"], ["p-verify", "out-artifacts", "verify, gate_verify"], ["p-finalize", "out-artifacts", "final_report"], ["p-finalize", "out-selfmodel", "episodic + semantic + bootstrap"], ["p-finalize", "out-platform", "DashboardRenderer.render() (chemin demo)"], ["out-artifacts", "out-platform", "run_summaries, telemetry"], ["out-selfmodel", "out-platform", "memory_view"], ["out-platform", "p-plan", "JobService.resume() : non commité", "b"]], "_layout": {"W": 150, "H": 94, "PAD": 26, "couloir": 316, "couloirs": [246, 138, 106, 208, 157, 233, 157, 208, 284, 182, 316, 214, 80], "lane": 654, "canvasW": 4479, "canvasH": 714, "bandes": [{"id": "C1", "nom": "Déclencheurs", "x": 20, "w": 190, "y": 86, "h": 496, "teinte": 0}, {"id": "C2", "nom": "Boucle d'autonomie", "x": 416, "w": 1092, "y": 86, "h": 496, "teinte": 1}, {"id": "C3", "nom": "Services transverses", "x": 1625, "w": 190, "y": 86, "h": 496, "teinte": 2}, {"id": "C4", "nom": "Pipeline d'exécution", "x": 1625, "w": 2004, "y": 86, "h": 496, "teinte": 3}, {"id": "C5", "nom": "Convergence multi-agent (optionnel)", "x": 2673, "w": 190, "y": 86, "h": 496, "teinte": 4}, {"id": "C6", "nom": "Sorties & persistance", "x": 3905, "w": 554, "y": 86, "h": 496, "teinte": 5}], "vagues": [["e1", "e2"], ["d1"], ["d2"], ["l1"], ["l2"], ["svc-router", "svc-tools", "svc-policy", "p-intake"], ["p-plan"], ["p-execute"], ["ma"], ["p-verify"], ["p-finalize"], ["out-artifacts", "out-selfmodel"], ["out-platform"]]}};
+const LAY = SCHEMA._layout, W = LAY.W, H = LAY.H, PAD = LAY.PAD, LANE_B = LAY.lane;
+const CAR = 6.35;
+
+/* ---- index dérivés du schéma ---- */
+const N = {}, FICHE = {}, COUCHE_DE = {}, ETIQ = {};
+SCHEMA.blocs.forEach(b=>{
+  N[b.id] = {x:b.x, y:b.y, c:b.code, n:b.nom, st:b.etat, stl:b.etiquette, f:b.fichier};
+  FICHE[b.id] = b.fiche || {recoit:[],produit:[],refuse:[],manque:"—"};
+  COUCHE_DE[b.id] = b.couche;
+});
+SCHEMA.couches.forEach((c,i)=>ETIQ[c.id] = "L"+(i+1));
+// Un « v » ne veut dire quelque chose qu'entre deux blocs de la MÊME colonne.
+// Déclaré ailleurs, il n'a pas d'ancre et laissait la flèche pointer dans le vide:
+// on le ramène au routage de flux plutôt que de dessiner un lien faux.
+const EDGES = SCHEMA.aretes.map(a=>{
+  let k = a[3] || "f";
+  if(k==="v" && N[a[0]] && N[a[1]] && N[a[0]].x !== N[a[1]].x) k = "f";
+  return [a[0], a[1], a[2]||"", k];
+});
+const WAVES = LAY.vagues;
+const VAGUE_DE = {}; WAVES.forEach((ids,i)=>ids.forEach(id=>VAGUE_DE[id]=i));
+
+/* ---- routage orthogonal : segments H/V seulement, contournement des blocs ---- */
+function rects(exc){
+  return Object.entries(N).filter(([k])=>!exc.includes(k))
+    .map(([,m])=>({x1:m.x-7, y1:m.y-7, x2:m.x+W+7, y2:m.y+H+7}));
+}
+function segCoupe(x1,y1,x2,y2,r){
+  const ax=Math.min(x1,x2), bx=Math.max(x1,x2), ay=Math.min(y1,y2), by=Math.max(y1,y2);
+  return ax<=r.x2 && bx>=r.x1 && ay<=r.y2 && by>=r.y1;
+}
+function trajetCoupe(pts, exc){
+  const rs = rects(exc);
+  for(let i=0;i<pts.length-1;i++)
+    for(const r of rs)
+      if(segCoupe(pts[i][0],pts[i][1],pts[i+1][0],pts[i+1][1],r)) return true;
+  return false;
+}
+const ANCRE = {};
+function ancres(){
+  const ent={}, sor={};
+  EDGES.forEach(([a,b,,k],i)=>{ if(k==="f"){ (sor[a]??=[]).push(i); (ent[b]??=[]).push(i); } });
+  Object.entries(sor).forEach(([n,l])=>l.forEach((i,j)=>{
+    ANCRE["s"+i]=[N[n].x+W, N[n].y + H*(j+1)/(l.length+1)]; }));
+  Object.entries(ent).forEach(([n,l])=>l.forEach((i,j)=>{
+    ANCRE["e"+i]=[N[n].x, N[n].y + H*(j+1)/(l.length+1)]; }));
+}
+function trace(i){
+  const [a,b,,k] = EDGES[i], A=N[a], B=N[b];
+  // Lien vertical: il contourne par le couloir de droite. Descendre au milieu du
+  // bloc traversait tout ce qui se trouve entre les deux — la colonne n'est pas
+  // faite que de blocs adjacents.
+  if(k==="v" && A.x===B.x){
+    const mont = B.y < A.y, xc = A.x + W + PAD/2;
+    const yS = mont ? A.y : A.y + H, yE = mont ? B.y + H : B.y, d = mont ? -10 : 10;
+    return {pts:[[A.x+W/2,yS],[A.x+W/2,yS+d],[xc,yS+d],[xc,yE-d],[B.x+W/2,yE-d],[B.x+W/2,yE]],
+            dir: mont ? "up" : "down"};
+  }
+  // Un « v » dont les deux bouts ne sont PAS dans la même colonne ne peut pas être
+  // vertical: on retombe sur le routage de flux, sinon la flèche pointe dans le vide.
+  if(k==="b"){
+    const ay=A.y+H/2, xa=A.x+W+PAD/2, xb=B.x-PAD/2, yb=B.y+H+14;
+    return {pts:[[A.x+W,ay],[xa,ay],[xa,LANE_B],[xb,LANE_B],[xb,yb],[B.x+W/2,yb],[B.x+W/2,B.y+H]],
+            dir:"up"};
+  }
+  const [sx,sy]=ANCRE["s"+i], [ex,ey]=ANCRE["e"+i];
+  const rang = EDGES.filter(([,bb,,kk],j)=>kk==="f"&&bb===b&&j<i).length;
+  let mx = ex - PAD - rang*11;
+  let pts = sy===ey ? [[sx,sy],[ex,ey]] : [[sx,sy],[mx,sy],[mx,ey],[ex,ey]];
+  if(!trajetCoupe(pts,[a,b])) return {pts, dir:"right"};
+  mx = sx + PAD;
+  pts = [[sx,sy],[mx,sy],[mx,ey],[ex,ey]];
+  if(!trajetCoupe(pts,[a,b])) return {pts, dir:"right"};
+  return {pts:[[sx,sy],[sx+PAD,sy],[sx+PAD,LANE_B],[ex-PAD,LANE_B],[ex-PAD,ey],[ex,ey]], dir:"right"};
+}
+function d(pts){ return "M"+pts.map(p=>p[0]+","+p[1]).join(" L"); }
+function pointe(pts, dir){
+  const [x,y]=pts[pts.length-1], s=8;
+  if(dir==="down") return `${x-s},${y-s*1.5} ${x+s},${y-s*1.5} ${x},${y}`;
+  if(dir==="up")   return `${x-s},${y+s*1.5} ${x+s},${y+s*1.5} ${x},${y}`;
+  return `${x-s*1.5},${y-s} ${x-s*1.5},${y+s} ${x},${y}`;
+}
+function aretes(){
+  ancres();
+  let h="";
+  const etiquettes=[];
+  EDGES.forEach(([a,b,l,k],i)=>{
+    const {pts,dir}=trace(i);
+    const cls = k==="b" ? "edge back" : k==="v" ? "edge side" : "edge";
+    h+=`<path class="${cls}" id="e-${i}" d="${d(pts)}"/>`;
+    h+=`<polygon class="ah${k==="b"?" back":""}" id="a-${i}" points="${pointe(pts,dir)}"/>`;
+    if(l){
+      let lx, ly, anchor="middle";
+      const besoin=l.length*CAR+6;
+      if(k==="b"){ lx=(pts[2][0]+pts[3][0])/2; ly=LANE_B-10; }
+      else if(k==="v" && N[a].x===N[b].x){
+        lx=pts[2][0]+6; ly=(pts[2][1]+pts[3][1])/2; anchor="start";
+      }
+      else{
+        // L'étiquette appartient au couloir qui SUIT la source. La centrer entre
+        // les deux blocs la posait sur les colonnes sautées par une arête longue.
+        const c0=N[a].x+W, c1=c0+((LAY.couloirs||[])[VAGUE_DE[a]] ?? LAY.couloir);
+        lx = Math.min(Math.max((c0+c1)/2, c0+besoin/2), c1-besoin/2);
+        ly = pts[0][1]-9;
+      }
+      etiquettes.push({lx,ly,anchor,l,k,besoin});
+    }
+  });
+  // Plusieurs arêtes partant d'un même bloc sortent à des hauteurs voisines: leurs
+  // étiquettes s'empilaient. On les écarte verticalement, celle du dessus d'abord.
+  etiquettes.sort((p,q)=>p.ly-q.ly);
+  etiquettes.forEach((e,i)=>{
+    for(let j=0;j<i;j++){
+      const o=etiquettes[j];
+      const dx=Math.abs(e.lx-o.lx) < (e.besoin+o.besoin)/2;
+      if(dx && Math.abs(e.ly-o.ly) < 15) e.ly = o.ly + 15;
+    }
+  });
+  etiquettes.forEach(e=>{
+    h+=`<text class="elbl" x="${e.lx}" y="${e.ly}" text-anchor="${e.anchor}"${e.k==="b"?' style="fill:var(--ok)"':''}>${e.l}</text>`;
+  });
+  sv.innerHTML=h;
+}
+function majAretes(){
+  EDGES.forEach(([a,b,,k],i)=>{
+    const e=document.getElementById("e-"+i), ah=document.getElementById("a-"+i);
+    if(!e) return;
+    const base = k==="b" ? "back" : k==="v" ? "side" : "";
+    let etat="";
+    if(k==="b"){ etat = boucleActive() ? "" : "off"; }
+    else{
+      const sa=etats[a], sb=etats[b];
+      if(sa==="skip"||sb==="skip") etat="dead";
+      else if(sb==="run") etat="live";
+      else if(["ok","warn","crit"].includes(sa)) etat="done";
+    }
+    e.setAttribute("class", ("edge "+base+" "+etat).replace(/\s+/g," ").trim());
+    ah.setAttribute("class", ("ah "+base+" "+etat).replace(/\s+/g," ").trim());
+  });
+}
+
+/* ---- état ---- */
+const cv=document.getElementById("canvas"), sv=document.getElementById("edges");
+let sel=SCHEMA.blocs[0].id, etats={}, res=null, timer=null, wave=0, running=false, spd=1;
+const pol={}; (SCHEMA.politiques||[]).forEach(p=>pol[p.id]=!!p.defaut);
+let scnId = (SCHEMA.scenarios&&SCHEMA.scenarios[0]) ? SCHEMA.scenarios[0].id : null;
+Object.keys(N).forEach(k=>etats[k]="idle");
+const boucleActive = ()=> (SCHEMA.politiques||[]).length ? pol[SCHEMA.politiques[0].id] : true;
+
+function cle(){ return (SCHEMA.politiques||[]).map(p=>`${p.id}:${pol[p.id]}`).join("|"); }
+function calcule(){
+  const s=(SCHEMA.scenarios||[]).find(x=>x.id===scnId);
+  if(!s) return {out:Object.fromEntries(Object.keys(N).map(k=>[k,{st:"ok",mt:"—",log:[]}])), log:[]};
+  const r = s.resultats[cle()] || s.resultats[Object.keys(s.resultats)[0]];
+  return {out:r.blocs, log:r.verdict||[]};
+}
+
+/* ---- rendu ---- */
+function bandes(){
+  LAY.bandes.forEach(g=>{
+    const t="L"+(g.teinte+1), d=document.createElement("div");
+    d.className="grp";
+    d.style.cssText=`left:${g.x}px; top:${g.y}px; width:${g.w}px; height:${g.h}px;
+      background:var(--${t}b); border-color:var(--${t}e);`;
+    d.innerHTML=`<span style="color:var(--${t})">${g.nom}</span>`;
+    cv.appendChild(d);
+  });
+}
+function noeuds(){
+  SCHEMA.blocs.forEach(b=>{
+    const t = ETIQ[b.couche] || "L1";
+    const el=document.createElement("button");
+    el.className="node"; el.id="n-"+b.id; el.style.left=b.x+"px"; el.style.top=b.y+"px";
+    el.setAttribute("data-s","idle");
+    el.style.borderLeftColor=`var(--${t})`;
+    el.style.setProperty("--tint",`var(--${t}b)`); el.style.setProperty("--lc",`var(--${t})`);
+    const tag = b.etat==="abs" ? '<span class="tagabs">absent</span>'
+              : b.etat==="sup" ? '<span class="tagsup">supprimé</span>' : "";
+    el.innerHTML=`${tag}<span class="top"><span class="code">${b.code}</span><span class="st"></span></span>
+      <span class="nm">${b.nom}</span><span class="mt" id="mt-${b.id}">—</span>`;
+    el.onclick=()=>{ if(pan.bouge>5) return; sel=b.id; fiche(); };
+    cv.appendChild(el);
+  });
+}
+const STL={ok:"b-ok",par:"b-par",abs:"b-abs",sup:"b-sup",con:"b-con"};
+const ETQ={ok:["b-ok","terminé"],warn:["b-par","terminé avec réserves"],
+           crit:["b-abs","refus ou blocage"],skip:["b-sup","non exécuté"]};
+function bilan(k){
+  if(!res || !res.out[k] || etats[k]==="idle" || etats[k]==="run") return "";
+  const o=res.out[k], [cls,txt]=ETQ[o.st]||["b-con","—"];
+  return `<div class="run-bilan"><span class="lbl">Dernière exécution</span>
+    <span class="badge ${cls}">${txt}</span><span class="sortie">${o.mt}</span>
+    ${(o.log||[]).length?`<ul class="jrn">${o.log.map(l=>`<li>${l}</li>`).join("")}</ul>`:""}</div>`;
+}
+function fiche(){
+  const m=N[sel], f=FICHE[sel];
+  const li=a=>(a||[]).map(x=>`<li>${x}</li>`).join("");
+  document.getElementById("detail").innerHTML=`
+    <div class="hd"><h3 style="font-size:15px">${m.c} · ${m.n}</h3>
+      <span class="badge ${STL[m.st]||"b-con"}">${m.stl||""}</span>
+      <span class="path" style="margin-left:auto">${m.f||""}</span></div>
+    ${bilan(sel)}
+    <div class="bd"><div class="cols">
+      <div class="blk"><span class="lbl">Reçoit</span><ul>${li(f.recoit)}</ul></div>
+      <div class="blk"><span class="lbl">Produit</span><ul>${li(f.produit)}</ul></div>
+      <div class="blk"><span class="lbl">Refuse de produire</span><ul class="refus">${li(f.refuse)}</ul></div>
+      <div class="blk"><span class="lbl">Ce qui manque</span><p>${f.manque||"—"}</p></div>
+    </div></div>`;
+  majNoeuds();
+}
+function majNoeuds(){
+  Object.keys(N).forEach(k=>{
+    const el=document.getElementById("n-"+k); if(!el) return;
+    el.setAttribute("data-s", etats[k]);
+    el.setAttribute("aria-pressed", k===sel);
+    const mt=document.getElementById("mt-"+k);
+    mt.textContent = etats[k]==="idle" ? "—" : etats[k]==="run" ? "en travail…"
+      : (res && res.out[k] ? res.out[k].mt : "—");
+  });
+  majAretes();
+}
+function journal(sev,txt){
+  const el=document.getElementById("log");
+  el.insertAdjacentHTML("beforeend",
+    `<div><span class="t">${new Date().toTimeString().slice(0,8)}</span>  <span class="${sev}">${txt}</span></div>`);
+  el.scrollTop=el.scrollHeight;
+}
+function reset(){
+  clearTimeout(timer); running=false; wave=0; res=null;
+  Object.keys(N).forEach(k=>etats[k]="idle");
+  document.getElementById("log").innerHTML=""; document.getElementById("clock").textContent="—";
+  majNoeuds(); fiche(); btns();
+}
+function btns(){
+  const p=document.getElementById("play");
+  p.textContent = running ? "En cours…" : "Exécuter"; p.disabled = running;
+  document.getElementById("step").disabled = running;
+}
+function jouerVague(auto){
+  if(wave===0){ res=calcule(); journal("acc","▶ "+((SCHEMA.scenarios||[]).find(s=>s.id===scnId)||{}).nom||SCHEMA.titre); }
+  if(wave>=WAVES.length){
+    running=false; btns(); (res.log||[]).forEach(v=>journal(v[0],"◆ "+v[1]));
+    document.getElementById("clock").textContent="terminé"; fiche(); return;
+  }
+  const grp=WAVES[wave];
+  grp.forEach(k=>etats[k]="run"); majNoeuds();
+  document.getElementById("clock").textContent=`vague ${wave+1}/${WAVES.length}${grp.length>1?` · ${grp.length} en parallèle`:""}`;
+  timer=setTimeout(()=>{
+    grp.forEach(k=>{
+      const o=res.out[k]; etats[k]=o?o.st:"ok";
+      if(o) (o.log||[]).forEach(l=>journal(o.st==="crit"?"crit":o.st==="warn"?"warn":o.st==="skip"?"abst":"ok",`  ${N[k].c} ${l}`));
+    });
+    majNoeuds(); fiche(); wave++;
+    if(auto && running) jouerVague(true); else btns();
+  }, (420+grp.length*110)*spd);
+}
+
+/* ---- barre : scénarios, politiques, légendes ---- */
+if((SCHEMA.scenarios||[]).length){
+  document.getElementById("ctl-scn").innerHTML =
+    `<span class="lbl">Scénario</span><select id="scn">${SCHEMA.scenarios.map(s=>`<option value="${s.id}">${s.nom}</option>`).join("")}</select>`;
+  document.getElementById("scn").onchange = e=>{ scnId=e.target.value; reset(); };
+}
+document.getElementById("ctl-pol").innerHTML = (SCHEMA.politiques||[]).map(p=>
+  `<div class="ctl" title="${(p.aide||"").replace(/"/g,"&quot;")}"><span class="lbl">${p.nom}</span>
+   <button class="sw" data-p="${p.id}" aria-pressed="${!!p.defaut}" aria-label="${p.nom}"></button></div>`).join("");
+document.querySelectorAll(".sw[data-p]").forEach(b=>b.onclick=()=>{
+  pol[b.dataset.p]=!pol[b.dataset.p]; b.setAttribute("aria-pressed",pol[b.dataset.p]); reset(); });
+document.getElementById("soustitre").textContent = SCHEMA.sousTitre||"";
+document.getElementById("leg-couches").innerHTML =
+  `<span class="lbl" style="margin-right:2px">Couches</span>` + SCHEMA.couches.map((c,i)=>
+   `<span><i style="background:var(--L${i+1});border-radius:2px"></i>${c.nom}</span>`).join("");
+document.getElementById("leg-etats").innerHTML = `<span class="lbl" style="margin-right:2px">États</span>
+  <span><i style="background:var(--line-2)"></i>en attente</span>
+  <span><i style="background:var(--accent)"></i>en travail</span>
+  <span><i style="background:var(--ok)"></i>terminé</span>
+  <span><i style="background:var(--warn)"></i>terminé avec réserves</span>
+  <span><i style="background:var(--crit)"></i>refus ou blocage</span>
+  <span><i style="background:var(--abst)"></i>non exécuté</span>
+  <span style="margin-left:auto"><svg width="34" height="10" style="vertical-align:-1px"><line x1="0" y1="5" x2="24" y2="5" stroke="var(--ink-3)" stroke-width="2"/><polygon points="24,1 24,9 32,5" fill="var(--ink-3)"/></svg> flux</span>
+  <span><svg width="34" height="10" style="vertical-align:-1px"><line x1="0" y1="5" x2="24" y2="5" stroke="var(--ok)" stroke-width="2" stroke-dasharray="7 4"/><polygon points="24,1 24,9 32,5" fill="var(--ok)"/></svg> retour en arrière</span>`;
+
+/* ---- navigation : saisir la feuille, molette pour zoomer ---- */
+const wrap=document.querySelector(".canvas-wrap"), csize=document.getElementById("csize");
+const BASE_W=LAY.canvasW, BASE_H=LAY.canvasH;
+cv.style.width=BASE_W+"px"; cv.style.height=BASE_H+"px";
+sv.setAttribute("viewBox",`0 0 ${BASE_W} ${BASE_H}`);
+let z=1, pan={on:false,dx:0,dy:0,sl:0,st:0,bouge:0};
+function zoom(v){
+  z=Math.min(2.2,Math.max(.25,v));
+  cv.style.transform=`scale(${z})`;
+  csize.style.width=(BASE_W*z)+"px"; csize.style.height=(BASE_H*z)+"px";
+  document.getElementById("zlbl").textContent=Math.round(z*100)+" %";
+}
+const ajuster=()=>zoom((wrap.clientWidth-24)/BASE_W);
+/* Pas de setPointerCapture : l'élément qui capture reçoit aussi le clic à la place du bouton. */
+wrap.addEventListener("pointerdown", e=>{
+  if(e.button!==0) return;
+  pan={on:true,dx:e.clientX,dy:e.clientY,sl:wrap.scrollLeft,st:wrap.scrollTop,bouge:0};
+  wrap.classList.add("grabbing");
+});
+document.addEventListener("pointermove", e=>{
+  if(!pan.on) return;
+  const dx=e.clientX-pan.dx, dy=e.clientY-pan.dy;
+  pan.bouge=Math.max(pan.bouge,Math.abs(dx)+Math.abs(dy));
+  if(pan.bouge>4){ wrap.scrollLeft=pan.sl-dx; wrap.scrollTop=pan.st-dy; }
+});
+["pointerup","pointercancel"].forEach(ev=>document.addEventListener(ev,()=>{
+  if(pan.on){ pan.on=false; wrap.classList.remove("grabbing"); } }));
+wrap.addEventListener("wheel", e=>{
+  if(!e.ctrlKey && !e.metaKey) return;
+  e.preventDefault();
+  const av=z; zoom(z*(e.deltaY<0?1.12:0.89));
+  const r=wrap.getBoundingClientRect(), px=e.clientX-r.left+wrap.scrollLeft, py=e.clientY-r.top+wrap.scrollTop;
+  wrap.scrollLeft+=px*(z/av-1); wrap.scrollTop+=py*(z/av-1);
+},{passive:false});
+document.getElementById("zin").onclick=()=>zoom(z*1.15);
+document.getElementById("zout").onclick=()=>zoom(z/1.15);
+document.getElementById("zfit").onclick=ajuster;
+addEventListener("keydown", e=>{
+  if(["SELECT","INPUT","TEXTAREA"].includes(e.target.tagName)) return;
+  const p=90, m={ArrowLeft:["scrollLeft",-p],ArrowRight:["scrollLeft",p],ArrowUp:["scrollTop",-p],ArrowDown:["scrollTop",p]}[e.key];
+  if(m){ wrap[m[0]]+=m[1]; e.preventDefault(); }
+});
+document.getElementById("play").onclick=()=>{ reset(); running=true; btns(); jouerVague(true); };
+document.getElementById("step").onclick=()=>{ if(wave===0) document.getElementById("log").innerHTML=""; jouerVague(false); };
+document.getElementById("reset").onclick=reset;
+document.getElementById("spd").onchange=e=>{ spd=parseFloat(e.target.value); };
+document.getElementById("theme").onclick=()=>{
+  const c=document.documentElement.getAttribute("data-theme");
+  const n=c==="dark"?"light":c==="light"?"dark":(matchMedia("(prefers-color-scheme: dark)").matches?"light":"dark");
+  document.documentElement.setAttribute("data-theme",n);
+  try{localStorage.setItem("bl",n)}catch(e){}
+};
+try{const t=localStorage.getItem("bl"); if(t) document.documentElement.setAttribute("data-theme",t);}catch(e){}
+
+bandes(); noeuds(); aretes(); fiche(); majNoeuds(); btns();
+</script>
