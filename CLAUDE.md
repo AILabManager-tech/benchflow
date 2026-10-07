@@ -173,9 +173,21 @@ vérifier — c'est voulu, remets le motif à jour.
 - Interface, commentaires et messages de commit en **français (Québec)**.
 - Les commentaires expliquent **pourquoi**, pas quoi. Beaucoup disent quel bug la
   ligne empêche de revenir — ne les supprime pas en « nettoyant ».
-- Commiter librement. **Ne jamais pousser sans accord explicite** ; aucun dépôt
-  distant n'existe à ce jour.
+- Commiter et pousser librement (`origin` = `AILabManager-tech/benchflow`, public ;
+  chaque poussée sur `main` republie la démo).
 - Ports locaux : rester dans `20000–29999` (la sonde navigateur utilise 29222+).
+
+## Le moteur de rendu (`rendu/`) — hors de ce dépôt
+
+Depuis le 2026-10-07, BenchFlow a aussi un moteur de schémas : `rendu/`, notre
+copie appropriée d'Archify (MIT), plus la vérification de projet réel (ex-skill
+`synoptic`, dans `rendu/verif/`). C'est le skill `benchflow`
+(`~/.claude/skills/benchflow` → `rendu/`).
+
+`rendu/` est **ignoré ici** et a son propre dépôt privé
+(`AILabManager-tech/benchflow-rendu`) : c'est un outil Node avec `package.json`,
+il violerait l'invariant 1, et il est pour notre usage seulement, pas pour la
+démo publique.
 
 ## Pièges connus
 

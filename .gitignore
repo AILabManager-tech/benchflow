@@ -2,3 +2,6 @@
 
 # Exercices — restent locaux, ne partent pas dans le dépôt public
 EXERCICES.md
+
+# Moteur de rendu : dépôt privé à part (benchflow-rendu), jamais dans ce dépôt public
+rendu/
