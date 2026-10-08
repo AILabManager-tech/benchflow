@@ -42,7 +42,7 @@ Un seul fichier HTML. Aucune dépendance. Ouvrable hors ligne, pour toujours.
 ## Lancer
 
 - l'icône **BenchFlow** dans le menu d'applications, ou
-- `benchflow` au terminal, ou
+- `atelier-blocs` au terminal (`benchflow` lance désormais le moteur de schémas), ou
 - ouvrir `atelier.html` dans un navigateur.
 
 Le lanceur ouvre une fenêtre d'application sans barre d'adresse, avec son propre profil de
