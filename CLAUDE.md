@@ -188,8 +188,8 @@ y toucher.
 `moteur/` est **ignoré ici** et a son propre dépôt privé
 (`AILabManager-tech/benchflow-moteur`) : c'est un outil Node avec `package.json`,
 il violerait l'invariant 1, et il est pour notre usage seulement, pas pour la
-démo publique. L'ancien moteur `rendu/` part à la corbeille avec le script de bascule
-(lot L12).
+démo publique. L'ancien moteur `rendu/` est à la corbeille depuis la bascule du
+2026-10-08, sur les deux postes.
 
 ## Pièges connus
 
