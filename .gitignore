@@ -5,3 +5,6 @@ EXERCICES.md
 
 # Moteur de rendu : dépôt privé à part (benchflow-rendu), jamais dans ce dépôt public
 rendu/
+
+# Nouveau moteur (réécriture à neuf) : dépôt privé à part (benchflow-moteur)
+moteur/

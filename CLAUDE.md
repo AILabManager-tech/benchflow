@@ -86,9 +86,9 @@ Ce qui **ne** change pas, et qu'il ne faut pas « aligner » :
   `~/.local/bin/atelier-blocs` et le nom de fichier `atelier-blocs.desktop`.
   Ce sont des chemins, pas des libellés : les renommer casse l'entrée de menu,
   et `StartupWMClass=atelier-blocs` doit rester accordé au `--class` du lanceur.
-  Le nom **affiché** par le menu, lui, est passé à BenchFlow (2026-08-27), et
-  `~/.local/bin/benchflow` est un lien vers le script — les deux commandes
-  marchent.
+  Le nom **affiché** par le menu, lui, est passé à BenchFlow (2026-08-27).
+  Depuis le 2026-10-08, la commande `benchflow` lance le moteur de schémas
+  (`moteur/`) ; le simulateur s'ouvre par `atelier-blocs` ou le menu.
 - Les clés de stockage `atelier2`, `atelier-theme`, `atelier`, le type de glisser
   `text/atelier`, le symbole `atelier.anomalie`. Ce sont des identifiants, pas
   des libellés. Renommer une clé de stockage efface sans le dire le montage et le
@@ -177,17 +177,18 @@ vérifier — c'est voulu, remets le motif à jour.
   chaque poussée sur `main` republie la démo).
 - Ports locaux : rester dans `20000–29999` (la sonde navigateur utilise 29222+).
 
-## Le moteur de rendu (`rendu/`) — hors de ce dépôt
+## Le moteur de schémas (`moteur/`) — hors de ce dépôt
 
-Depuis le 2026-10-07, BenchFlow a aussi un moteur de schémas : `rendu/`, notre
-copie appropriée d'Archify (MIT), plus la vérification de projet réel (ex-skill
-`synoptic`, dans `rendu/verif/`). C'est le skill `benchflow`
-(`~/.claude/skills/benchflow` → `rendu/`).
+Depuis le 2026-10-08, BenchFlow a aussi un moteur de schémas : `moteur/`, réécrit
+à neuf et signé par Marc, plus la vérification de projet réel (`moteur/verif/`).
+C'est le skill `benchflow` (`~/.claude/skills/benchflow` → `moteur/skill/`) et la
+commande `benchflow`, sur gear-code et Jarvis. Son propre `CLAUDE.md` dit comment
+y toucher.
 
-`rendu/` est **ignoré ici** et a son propre dépôt privé
-(`AILabManager-tech/benchflow-rendu`) : c'est un outil Node avec `package.json`,
+`moteur/` est **ignoré ici** et a son propre dépôt privé
+(`AILabManager-tech/benchflow-moteur`) : c'est un outil Node avec `package.json`,
 il violerait l'invariant 1, et il est pour notre usage seulement, pas pour la
-démo publique.
+démo publique. L'ancien moteur `rendu/` est à la corbeille.
 
 ## Pièges connus
 
