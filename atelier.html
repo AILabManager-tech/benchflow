@@ -213,6 +213,15 @@ button{cursor:pointer; background:none; border:0; padding:0}
    coupé se relit dans le panneau du montage. */
 .bar > *{flex-shrink:0}
 .bar .sep{width:1px; height:20px; background:var(--line); margin:0 3px}
+.retour{flex:0 0 auto; align-self:stretch; position:sticky; left:0; z-index:2; display:inline-flex; align-items:center; gap:.4rem;
+  margin:-8px .6rem -8px -12px; padding:0 1rem 0 .8rem; min-height:3rem; background:var(--surface); border:0;
+  border-right:1px solid var(--line); color:var(--ink-3); font:inherit; font-size:.8rem; font-weight:500;
+  cursor:pointer; transition:color .15s, background-color .15s}
+.retour svg{width:1em; height:1em; flex:none; transition:transform .15s}
+.retour:hover,.retour:focus-visible{color:var(--ink); background:var(--surface-2)}
+.retour:hover svg,.retour:focus-visible svg{transform:translateX(-2px)}
+.retour[aria-disabled=true]{opacity:.35; cursor:default; background:var(--surface); color:var(--ink-3)}
+.retour[aria-disabled=true] svg{transform:none}
 .marque{display:flex; align-items:center; gap:8px; padding-right:4px}
 .marque .logo{width:22px; height:22px; border-radius:5px; background:var(--accent);
   display:grid; place-items:center; color:var(--sur-teinte); font-weight:700; font-size:12px;
@@ -564,6 +573,7 @@ table.tb td.num{font-family:var(--mono); text-align:right; white-space:nowrap}
 
 <!-- ══ barre haute ══════════════════════════════════════════════ -->
 <div class="bar">
+  <button type="button" class="retour" id="b-retour" data-retour title="Revenir à la vue d'avant (Alt + ←)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Retour</button>
   <div class="marque"><span class="logo">◧</span><h1>BenchFlow</h1><span class="version" id="version"></span></div>
   <span class="etat-doc" id="etat-doc">—</span>
   <span class="sep"></span>
@@ -6204,6 +6214,68 @@ function tenteMigration(){
        montage et regarde l'onglet <b>Problèmes</b>.</p>`), 400);
   return true;
 }
+
+/* ── retour ─────────────────────────────────────────────────────────────────
+   Une fenêtre d'application n'a pas de bouton « précédent ». Les vues de ce
+   fichier (onglet du panneau droit, onglet du tiroir, bloc / fil / section
+   sélectionné) sont poussées dans l'historique du navigateur ; « Retour » en
+   revient. Une boîte ouverte (commandes, forge, aide…) se ferme d'abord.
+   Chaque entrée porte un compteur _i : 0 = la vue de départ, bouton grisé. */
+const Retour = (() => {
+  const b = $("b-retour");
+  let i = 0, dernier = "", applique = false;
+  const onglet = barre => { const o = $(barre).querySelector("button[data-v].on"); return o ? o.dataset.v : null; };
+  const vue = () => ({ d: onglet("ongl-d"), b: onglet("ongl-b"), s: [...sel].sort(), l: selLien, z: selZone });
+  const voileOuvert = () => ["voile-cmd","voile-forge","voile-boite"].some(v => $(v).classList.contains("on"));
+  function maj(){
+    if (i === 0 && !voileOuvert()) b.setAttribute("aria-disabled", "true");
+    else b.removeAttribute("aria-disabled");
+  }
+  function sync(){
+    if (applique) return;
+    const v = vue(), sig = JSON.stringify(v);
+    if (sig === dernier) return;
+    dernier = sig; i++;
+    history.pushState({ _i: i, vue: v }, "");
+    maj();
+  }
+  function restaure(v){
+    applique = true;
+    try {
+      fermeVoiles();
+      for (const [barre, cible] of [["ongl-d", v.d], ["ongl-b", v.b]]){
+        const bt = cible && $(barre).querySelector(`button[data-v="${cible}"]`);
+        if (bt && !bt.classList.contains("on")) bt.click();
+      }
+      sel = new Set((v.s || []).filter(id => M.blocs.some(x => x.id === id)));
+      selLien = v.l && M.liens.some(x => x.id === v.l) ? v.l : null;
+      selZone = v.z && (M.zones || []).some(x => x.id === v.z) ? v.z : null;
+      dessine(); inspecteur();
+      dernier = JSON.stringify(vue());
+    } finally { applique = false; }
+  }
+  b.addEventListener("click", () => {
+    if (fermeVoiles()){ maj(); return; }
+    if (i > 0) history.back();
+  });
+  // un onglet cliqué : son propre gestionnaire a déjà joué, la vue est à jour
+  document.addEventListener("click", e => { if (e.target.closest && e.target.closest("#ongl-d button[data-v], #ongl-b button[data-v]")) sync(); });
+  const insp = inspecteur;
+  inspecteur = function(){ const r = insp.apply(this, arguments); sync(); return r; };
+  window.addEventListener("popstate", e => {
+    i = e.state && typeof e.state._i === "number" ? e.state._i : 0;
+    if (e.state && e.state.vue) restaure(e.state.vue);
+    maj();
+  });
+  const obs = new MutationObserver(maj);
+  ["voile-cmd","voile-forge","voile-boite"].forEach(v => obs.observe($(v), { attributes: true, attributeFilter: ["class"] }));
+  const st = history.state;
+  i = st && typeof st._i === "number" ? st._i : 0;
+  dernier = JSON.stringify(vue());
+  history.replaceState({ _i: i, vue: vue() }, "");
+  maj();
+  return { sync, maj };
+})();
 
 /* ── démarrage ───────────────────────────────────────────────────────────── */
 (function demarre(){
