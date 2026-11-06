@@ -182,14 +182,14 @@ vérifier — c'est voulu, remets le motif à jour.
 Depuis le 2026-10-08, BenchFlow a aussi un moteur de schémas : `moteur/`, réécrit
 à neuf et signé par Marc, plus la vérification de projet réel (`moteur/verif/`).
 C'est le skill `benchflow` (`~/.claude/skills/benchflow` → `moteur/skill/`) et la
-commande `benchflow`, sur gear-code et Jarvis. Son propre `CLAUDE.md` dit comment
+commande `benchflow`, sur gear-code. Son propre `CLAUDE.md` dit comment
 y toucher.
 
 `moteur/` est **ignoré ici** et a son propre dépôt privé
 (`AILabManager-tech/benchflow-moteur`) : c'est un outil Node avec `package.json`,
 il violerait l'invariant 1, et il est pour notre usage seulement, pas pour la
 démo publique. L'ancien moteur `rendu/` est à la corbeille depuis la bascule du
-2026-10-08, sur les deux postes.
+2026-10-08 sur gear-code.
 
 ## Pièges connus
 
